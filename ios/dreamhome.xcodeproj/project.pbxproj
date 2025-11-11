@@ -209,7 +209,7 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				29A9125D7E3CDDF10E74E7B6 /* [CP] Copy Pods Resources */,
-				42F77ECC268389DC27F88730 /* [CP] Embed Pods Frameworks */,
+				1BDA870A311C751C6BA3482E /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -293,7 +293,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "set -e\n\n# Clear problematic debugger environment variables and set legacy OpenSSL for Node 18\nunset VSCODE_INSPECTOR_OPTIONS\nexport NODE_OPTIONS=--openssl-legacy-provider\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+		};
+		1BDA870A311C751C6BA3482E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		29A9125D7E3CDDF10E74E7B6 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -303,30 +324,17 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
+			outputPaths = (
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		42F77ECC268389DC27F88730 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		5C90E080DB9A0048DAEEE37B /* [CP] Check Pods Manifest.lock */ = {
@@ -403,13 +411,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = 82SK48S5Y7;
+				DEVELOPMENT_TEAM = WZ43D29S4L;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = listingAppTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -420,7 +428,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.dreamhome.app;
+				PRODUCT_BUNDLE_IDENTIFIER = gt.com.dreamhome;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/dreamhome.app/dreamhome";
 			};
@@ -433,7 +441,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = 82SK48S5Y7;
 				INFOPLIST_FILE = listingAppTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -444,7 +452,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.dreamhome.app;
+				PRODUCT_BUNDLE_IDENTIFIER = gt.com.dreamhome;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/dreamhome.app/dreamhome";
 			};
@@ -459,22 +467,23 @@
 				CODE_SIGN_ENTITLEMENTS = dreamhome/dreamhome.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4;
-				DEVELOPMENT_TEAM = "";
+				CURRENT_PROJECT_VERSION = 2.6;
+				DEVELOPMENT_TEAM = WZ43D29S4L;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = dreamhome/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 2.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.dreamhome.app;
+				PRODUCT_BUNDLE_IDENTIFIER = gt.com.dreamhome;
 				PRODUCT_NAME = dreamhome;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "dreamhome-Bridging-Header.h";
@@ -493,22 +502,23 @@
 				CODE_SIGN_ENTITLEMENTS = dreamhome/dreamhome.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1.4;
-				DEVELOPMENT_TEAM = "";
+				CURRENT_PROJECT_VERSION = 2.6;
+				DEVELOPMENT_TEAM = WZ43D29S4L;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = dreamhome/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 2.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.dreamhome.app;
+				PRODUCT_BUNDLE_IDENTIFIER = gt.com.dreamhome;
 				PRODUCT_NAME = dreamhome;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "dreamhome-Bridging-Header.h";
