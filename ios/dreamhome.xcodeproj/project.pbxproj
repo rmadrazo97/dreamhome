@@ -322,7 +322,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
+			shellScript = "set -e\n\n# Clear problematic debugger environment variables and set legacy OpenSSL for Node 18\nunset VSCODE_INSPECTOR_OPTIONS\nexport NODE_OPTIONS=--openssl-legacy-provider\n\nexport NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		29A9125D7E3CDDF10E74E7B6 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -332,9 +332,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-dreamhome/Pods-dreamhome-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -393,9 +397,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-dreamhome-dreamhomeTests/Pods-dreamhome-dreamhomeTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-dreamhome-dreamhomeTests/Pods-dreamhome-dreamhomeTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -457,13 +465,13 @@
 			baseConfigurationReference = DCBEB02DDBCEFB9548C8A7A5 /* Pods-dreamhome-dreamhomeTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				DEVELOPMENT_TEAM = 82SK48S5Y7;
+				DEVELOPMENT_TEAM = WZ43D29S4L;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = listingAppTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -488,7 +496,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = 82SK48S5Y7;
 				INFOPLIST_FILE = listingAppTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -512,16 +520,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = listingApp/listingApp.entitlements;
-				CURRENT_PROJECT_VERSION = 1.4;
+				CURRENT_PROJECT_VERSION = 2.3;
 				DEVELOPMENT_TEAM = WZ43D29S4L;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = listingApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				INFOPLIST_KEY_CFBundleDisplayName = "Dream Home";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 2.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -542,16 +552,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = listingApp/listingApp.entitlements;
-				CURRENT_PROJECT_VERSION = 1.4;
+				CURRENT_PROJECT_VERSION = 2.3;
 				DEVELOPMENT_TEAM = WZ43D29S4L;
 				GCC_VERSION = "";
 				INFOPLIST_FILE = listingApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				INFOPLIST_KEY_CFBundleDisplayName = "Dream Home";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 2.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
