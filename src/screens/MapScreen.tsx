@@ -3,24 +3,23 @@ import {
     StyleSheet,
     View,
     FlatList,
-    Platform,
     Dimensions,
     ViewStyle,
     TextStyle
 } from 'react-native';
-import { SafeAreaConsumer } from 'react-native-safe-area-context';
 import MapView, { Marker, Circle } from 'react-native-maps';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import NavigationService from '../helpers/NavigationService';
 import { extractPostParams } from "../helpers/store";
-import { fomartCurrOut, valid_coords } from '../helpers/currency';
+import { valid_coords } from '../helpers/currency';
 import { translate } from "../helpers/i18n";
+import { themedColors } from '../constants/Colors';
 import CloseButton from '../components/inners/CloseButton';
 import MapCard from '../components/inners/MapCard';
 import TextMedium from '../components/ui/TextMedium';
 import TextHeavy from '../components/ui/TextHeavy';
-import { ThemeColors, NavigationProp, Listing, Location } from '../types';
-import { AppState } from '../types/redux';
+import { NavigationProp, Listing, Location } from '../types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;
@@ -41,7 +40,6 @@ interface MapScreenState {
 
 interface MapScreenProps {
     navigation: NavigationProp;
-    apColors: ThemeColors;
     listings: Listing[];
     userLocation: Location | null;
 }
@@ -51,13 +49,19 @@ interface ReduxState {
     userLocation: Location | null;
 }
 
-const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, userLocation }) => {
+const MapScreen: React.FC<MapScreenProps> = ({ navigation, listings, userLocation }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
+    
+    // Default to Guatemala City coordinates if no user location
+    const defaultLat = 14.6349;
+    const defaultLng = -90.5069;
+    
     const [state, setState] = useState<MapScreenState>({
         mIndex: 0,
         selectedListing: null,
         region: {
-            latitude: userLocation?.lat || 0,
-            longitude: userLocation?.lng || 0,
+            latitude: userLocation?.lat || defaultLat,
+            longitude: userLocation?.lng || defaultLng,
             latitudeDelta: LATITUDE_DELTA,
             longitudeDelta: LONGITUDE_DELTA,
         }
@@ -79,30 +83,38 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
     }, [navigation]);
 
     const onViewableItemsChanged = useCallback((info: any) => {
-        const { mIndex } = state;
         const { viewableItems } = info;
         
         if (viewableItems.length > 0) {
             const newIndex = viewableItems[0].index;
-            if (newIndex !== mIndex) {
-                setState(prevState => ({
+            setState(prevState => {
+                if (prevState.mIndex === newIndex) {
+                    return prevState;
+                }
+                
+                // Animate map to selected listing
+                const selectedListing = listings[newIndex];
+                if (selectedListing) {
+                    const lat = selectedListing.latitude ?? selectedListing.location?.lat;
+                    const lng = selectedListing.longitude ?? selectedListing.location?.lng;
+                    if (lat && lng && valid_coords(lat, lng)) {
+                        mapRef.current?.animateToRegion({
+                            latitude: lat,
+                            longitude: lng,
+                            latitudeDelta: LATITUDE_DELTA,
+                            longitudeDelta: LONGITUDE_DELTA,
+                        }, 1000);
+                    }
+                }
+                
+                return {
                     ...prevState,
                     mIndex: newIndex,
                     selectedListing: listings[newIndex] || null,
-                }));
-
-                // Animate map to selected listing
-                if (listings[newIndex] && valid_coords(listings[newIndex].location.lat, listings[newIndex].location.lng)) {
-                    mapRef.current?.animateToRegion({
-                        latitude: listings[newIndex].location.lat,
-                        longitude: listings[newIndex].location.lng,
-                        latitudeDelta: LATITUDE_DELTA,
-                        longitudeDelta: LONGITUDE_DELTA,
-                    }, 1000);
-                }
-            }
+                };
+            });
         }
-    }, [state.mIndex, listings]);
+    }, [listings]);
 
     const handleMarkerPress = useCallback((listing: Listing, index: number) => {
         setState(prevState => ({
@@ -115,9 +127,29 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
         listingListRef.current?.scrollToIndex({ index, animated: true });
     }, []);
 
-    const handleListingPress = useCallback((listing: Listing) => {
-        NavigationService.navigate('Listing', extractPostParams(listing));
-    }, []);
+    const handleListingPress = useCallback((listing: Listing, index: number) => {
+        if (state.mIndex === index) {
+                navigation.navigate('Listing', { id: listing.ID as number, title: listing.title });
+                return;
+        }
+        setState(prevState => ({
+            ...prevState,
+            mIndex: index,
+            selectedListing: listing,
+        }));
+        if (listing) {
+            const lat = listing.latitude ?? listing.location?.lat;
+            const lng = listing.longitude ?? listing.location?.lng;
+            if (lat && lng && valid_coords(lat, lng)) {
+                mapRef.current?.animateToRegion({
+                    latitude: lat,
+                    longitude: lng,
+                    latitudeDelta: LATITUDE_DELTA,
+                    longitudeDelta: LONGITUDE_DELTA,
+                }, 1000);
+            }
+        }
+    }, [navigation, state.mIndex]);
 
     const handleClose = useCallback(() => {
         navigation.goBack();
@@ -127,13 +159,17 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
         <MapCard
             listing={item}
             apColors={apColors}
-            onPress={() => handleListingPress(item)}
+            onPress={() => handleListingPress(item, index)}
             isSelected={index === state.mIndex}
         />
     ), [apColors, handleListingPress, state.mIndex]);
 
     const renderMarker = useCallback((listing: Listing, index: number) => {
-        if (!valid_coords(listing.location.lat, listing.location.lng)) {
+        // Support both formats: direct latitude/longitude or nested location object
+        const lat = listing.latitude ?? listing.location?.lat;
+        const lng = listing.longitude ?? listing.location?.lng;
+        
+        if (!lat || !lng || !valid_coords(lat, lng)) {
             return null;
         }
         
@@ -141,8 +177,8 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
             <Marker
                 key={listing.id}
                 coordinate={{
-                    latitude: listing.location.lat,
-                    longitude: listing.location.lng,
+                    latitude: lat,
+                    longitude: lng,
                 }}
                 onPress={() => handleMarkerPress(listing, index)}
             >
@@ -153,7 +189,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
                     <TextHeavy style={[styles.markerText, { 
                         color: index === state.mIndex ? '#FFF' : apColors.regularText 
                     }]}>
-                        {fomartCurrOut(listing.price)}
+                        {listing.title}
                     </TextHeavy>
                 </View>
             </Marker>
@@ -180,12 +216,14 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
             }));
         } else if (listings.length > 0) {
             const firstListing = listings[0];
-            if (valid_coords(firstListing.location.lat, firstListing.location.lng)) {
+            const lat = firstListing.latitude ?? firstListing.location?.lat;
+            const lng = firstListing.longitude ?? firstListing.location?.lng;
+            if (lat != null && lng != null && valid_coords(lat, lng)) {
                 setState(prevState => ({
                     ...prevState,
                     region: {
-                        latitude: firstListing.location.lat,
-                        longitude: firstListing.location.lng,
+                        latitude: lat as number,
+                        longitude: lng as number,
                         latitudeDelta: LATITUDE_DELTA,
                         longitudeDelta: LONGITUDE_DELTA,
                     }
@@ -194,40 +232,54 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
         }
     }, [userLocation, listings]);
 
-    const { mIndex, selectedListing, region } = state;
+    const { region } = state;
+
+    // Ensure region is valid before rendering map
+    const isValidRegion = region.latitude !== 0 && region.longitude !== 0 && 
+                          !isNaN(region.latitude) && !isNaN(region.longitude);
 
     return (
-        <SafeAreaConsumer>
-            {insets => (
-                <View style={[styles.container, { 
+                <SafeAreaView style={[styles.container, { 
                     backgroundColor: apColors.appBg,
-                    paddingTop: insets.top,
-                    paddingLeft: insets.left,
-                    paddingRight: insets.right
                 }]}>
                     {/* Map */}
-                    <MapView
-                        ref={mapRef}
-                        style={styles.map}
-                        initialRegion={region}
-                        showsUserLocation={true}
-                        showsMyLocationButton={true}
-                    >
+                    {isValidRegion ? (
+                        <MapView
+                            ref={mapRef}
+                            style={styles.map}
+                            initialRegion={region}
+                            region={region}
+                            showsUserLocation={false}
+                            showsMyLocationButton={false}
+                            mapType="standard"
+                            loadingEnabled={true}
+                            loadingIndicatorColor={apColors.appColor}
+                            onMapReady={() => {
+                                console.log('Map ready');
+                            }}
+                        >
                         {markers}
                         
                         {/* User location circle */}
-                        {userLocation && valid_coords(userLocation.lat, userLocation.lng) && (
+                        {/* {userLocation && valid_coords(userLocation.lat, userLocation.lng) && (
                             <Circle
                                 center={{
                                     latitude: userLocation.lat,
                                     longitude: userLocation.lng,
                                 }}
-                                radius={1000}
-                                strokeColor={apColors.appColor}
-                                fillColor={apColors.appColor + '20'}
+                                radius={10}
+                                // strokeColor={apColors.appColor}
+                                // fillColor={apColors.appColor + '20'}
                             />
-                        )}
-                    </MapView>
+                        )} */}
+                        </MapView>
+                    ) : (
+                        <View style={[styles.map, { backgroundColor: apColors.secondBg, justifyContent: 'center', alignItems: 'center' }]}>
+                            <TextHeavy style={{ color: apColors.regularText }}>
+                                {translate('loading', '', {})}
+                            </TextHeavy>
+                        </View>
+                    )}
 
                     {/* Close Button */}
                     <View style={styles.closeButtonContainer}>
@@ -244,7 +296,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
                                 {translate('nearby_listings', '', {})}
                             </TextHeavy>
                             <TextMedium style={[styles.listingsCount, { color: apColors.addressText }]}>
-                                {listings.length} {translate('results', '', {})}
+                                {listings.length + ' ' + translate('results', '', {})}
                             </TextMedium>
                         </View>
 
@@ -260,9 +312,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ navigation, apColors, listings, u
                             contentContainerStyle={styles.listingsContent}
                         />
                     </View>
-                </View>
-            )}
-        </SafeAreaConsumer>
+                </SafeAreaView>
     );
 };
 
@@ -272,6 +322,7 @@ const styles = StyleSheet.create({
     } as ViewStyle,
     map: {
         flex: 1,
+        backgroundColor: 'transparent',
     } as ViewStyle,
     closeButtonContainer: {
         position: 'absolute',
@@ -284,10 +335,10 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        maxHeight: 200,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         paddingTop: 15,
+        paddingBottom: 15,
     } as ViewStyle,
     listingsHeader: {
         flexDirection: 'row',
@@ -306,8 +357,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
     } as ViewStyle,
     markerContainer: {
-        width: 60,
-        height: 30,
+        minWidth: 100,
+        maxWidth: 250,
+        padding: 10,
         borderRadius: 15,
         alignItems: 'center',
         justifyContent: 'center',
@@ -320,9 +372,9 @@ const styles = StyleSheet.create({
 });
 
 // Redux connection
-const mapStateToProps = (state: AppState): ReduxState => ({
+const mapStateToProps = (state: any): ReduxState => ({
     listings: state.listings?.items || [],
-    userLocation: state.user?.location || null,
+    userLocation: (state.user?.location || state.userLocation) || null,
 });
 
 export default connect(mapStateToProps)(MapScreen);

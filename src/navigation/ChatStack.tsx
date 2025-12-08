@@ -1,5 +1,4 @@
 import React, { useLayoutEffect } from 'react';
-import { useColorScheme } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from "react-redux";
@@ -10,8 +9,8 @@ import SignInScreen from '../screens/SignInScreen';
 import ForgetPwdScreen from '../screens/ForgetPwdScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 
-import getThemedColors from '../helpers/Theme';
 import { translate } from "../helpers/i18n";
+import { themedColors } from '../constants/Colors';
 
 const Stack = createStackNavigator();
 
@@ -23,7 +22,7 @@ interface ChatStackProps {
 const ChatStack: React.FC<ChatStackProps> = ({ navigation, route }) => {
     const user = useSelector((state: any) => state.user);
     const { isLoggedIn } = user;
-    const colors = getThemedColors(useColorScheme());
+    const colors = useSelector((state: any) => state.apColors) || themedColors.default;
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route) ?? (isLoggedIn ? 'Chat' : 'SignIn');
@@ -54,15 +53,15 @@ const ChatStack: React.FC<ChatStackProps> = ({ navigation, route }) => {
                         options={{ headerShown: false, tabBarVisible: false }} 
                         initialParams={{ loggedInRoute: 'Bookmarks' }}
                     >
-                        {props => <SignInScreen {...props} apColors={colors} />}
+                        {props => <SignInScreen {...props} />}
                     </Stack.Screen>
                     
                     <Stack.Screen name="ForgetPwd" options={{ headerShown: false, tabBarVisible: false }}>
-                        {props => <ForgetPwdScreen {...props} apColors={colors} />}
+                        {props => <ForgetPwdScreen {...props} />}
                     </Stack.Screen>
                     
                     <Stack.Screen name="Register" options={{ headerShown: false, tabBarVisible: false }}>
-                        {props => <RegisterScreen {...props} apColors={colors} />}
+                        {props => <RegisterScreen {...props} />}
                     </Stack.Screen>
                 </>
             )}

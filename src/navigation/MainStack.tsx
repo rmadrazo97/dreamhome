@@ -1,26 +1,26 @@
 import React, { useLayoutEffect } from 'react';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import HomeStack from './HomeStack';
 import FilterScreen from '../screens/FilterScreen';
 import SignInScreen from '../screens/SignInScreen';
 import ForgetPwdScreen from '../screens/ForgetPwdScreen';
 import RegisterScreen from '../screens/RegisterScreen';
-
-import { ThemeColors } from '../types';
+import { themedColors } from '../constants/Colors';
 
 const Stack = createStackNavigator();
 
 interface MainStackProps {
     navigation: any;
     route: any;
-    apColors: ThemeColors;
 }
 
-const MainStack: React.FC<MainStackProps> = ({ navigation, route, apColors }) => {
-    // Add null check for apColors
+const MainStack: React.FC<MainStackProps> = ({ navigation, route }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
+    
+    // apColors should always be available from reducer's initialState
     if (!apColors) {
         return null;
     }
@@ -66,22 +66,18 @@ const MainStack: React.FC<MainStackProps> = ({ navigation, route, apColors }) =>
             </Stack.Screen>
             
             <Stack.Screen name="SignIn">
-                {props => <SignInScreen {...props} apColors={apColors} />}
+                {props => <SignInScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="ForgetPwd" options={{ headerShown: false, tabBarVisible: false }}>
-                {props => <ForgetPwdScreen {...props} apColors={apColors} />}
+                {props => <ForgetPwdScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Register">
-                {props => <RegisterScreen {...props} apColors={apColors} />}
+                {props => <RegisterScreen {...props} />}
             </Stack.Screen>
         </Stack.Navigator>
     );
 };
 
-const mapStateToProps = (state: any) => ({
-    apColors: state.apColors,
-});
-
-export default connect(mapStateToProps)(MainStack);
+export default MainStack;

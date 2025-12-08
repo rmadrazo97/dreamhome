@@ -5,6 +5,7 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { translate } from "../helpers/i18n";
 import ReplyCom from './ReplyCom';
 import { ThemeColors } from '../types';
+import { themedColors } from '../constants/Colors';
 
 // for redux
 import { getReplies, postReply, getMoreTopReplies, clearReplies } from '../actions/chat';
@@ -142,7 +143,7 @@ const ReplySingle: React.FC<ReplySingleProps> = ({
 const mapStateToProps = (state: AppState) => ({
     user: state.user,
     chat: state.chat,
-    apColors: state.apColors,
+    apColors: (state as any).apColors || themedColors.default,
 });
 
 const mapDispatchToProps = (dispatch: AppDispatch) => ({

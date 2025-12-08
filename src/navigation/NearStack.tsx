@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useColorScheme } from 'react-native';
+import { useSelector } from 'react-redux';
 
 import NearScreen from '../screens/NearScreen';
 import CatsScreen from '../screens/CatsScreen';
@@ -18,7 +18,7 @@ import CheckoutScreen from '../screens/CheckoutScreen';
 
 import { translate } from "../helpers/i18n";
 import BackButton from '../components/inners/BackButton';
-import getThemedColors from '../helpers/Theme';
+import { themedColors } from '../constants/Colors';
 
 const Stack = createStackNavigator();
 
@@ -37,8 +37,7 @@ interface NearStackProps {
 }
 
 const NearStack: React.FC<NearStackProps> = ({ navigation: _navigation, route: _route }) => {
-    const apTheme = useColorScheme();
-    const colors = getThemedColors(apTheme);
+    const colors = useSelector((state: any) => state.apColors) || themedColors.default;
 
     return (
         <Stack.Navigator
@@ -62,7 +61,7 @@ const NearStack: React.FC<NearStackProps> = ({ navigation: _navigation, route: _
             </Stack.Screen>
             
             <Stack.Screen name="Locations" options={{ title: translate('loc_screen') }}>
-                {props => <LocsScreen {...props} apColors={colors} />}
+                {props => <LocsScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Categories" options={{ title: translate('cat_screen') }}>
@@ -74,11 +73,11 @@ const NearStack: React.FC<NearStackProps> = ({ navigation: _navigation, route: _
                 options={{ title: translate('archive_screen') }}
                 initialParams={{ appColor: colors.appColor }}
             >
-                {props => <ArchiveScreen {...props} apColors={colors} />}
+                {props => <ArchiveScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Map" options={{ headerShown: false }}>
-                {props => <MapScreen {...props} apColors={colors} />}
+                {props => <MapScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Listing" options={{ headerShown: false }}>
@@ -86,15 +85,15 @@ const NearStack: React.FC<NearStackProps> = ({ navigation: _navigation, route: _
             </Stack.Screen>
             
             <Stack.Screen name="Comments" options={{ title: translate('reviews_screen') }}>
-                {props => <CommentsScreen {...props} apColors={colors} />}
+                {props => <CommentsScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Claim" options={{ title: translate('claim_screen') }}>
-                {props => <ClaimScreen {...props} apColors={colors} />}
+                {props => <ClaimScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Report" options={{ title: translate('report_screen') }}>
-                {props => <ReportScreen {...props} apColors={colors} />}
+                {props => <ReportScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="ReplyNew" options={{ title: translate('reply_screen') }}>
@@ -102,15 +101,15 @@ const NearStack: React.FC<NearStackProps> = ({ navigation: _navigation, route: _
             </Stack.Screen>
             
             <Stack.Screen name="Availability" options={{ title: translate('dates_screen') }}>
-                {props => <AvailabilityScreen {...props} apColors={colors} />}
+                {props => <AvailabilityScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Booking" options={{ title: translate('bk_screen') }}>
-                {props => <BookingScreen {...props} apColors={colors} />}
+                {props => <BookingScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Checkout" options={{ title: translate('ck_screen') }}>
-                {props => <CheckoutScreen {...props} apColors={colors} />}
+                {props => <CheckoutScreen {...props} />}
             </Stack.Screen>
         </Stack.Navigator>
     );

@@ -12,6 +12,7 @@ import { extractPostParams } from "../helpers/store";
 import LList from '../components/inners/LList';
 import TextRegular from '../components/ui/TextRegular';
 import { AppState, Listing, ThemeColors, NavigationProp } from '../types';
+import { themedColors } from '../constants/Colors';
 
 interface BookmarksScreenProps {
     navigation: NavigationProp;
@@ -100,7 +101,7 @@ const BookmarksScreen: React.FC<BookmarksScreenProps> = ({
 const mapStateToProps = (state: AppState) => ({
     user: state.user,
     site: state.site,
-    apColors: (state as any).apColors || {} as ThemeColors,
+    apColors: (state as any).apColors || themedColors.default,
 });
 
 // Map dispatch to props

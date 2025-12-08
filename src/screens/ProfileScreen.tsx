@@ -1,10 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
     Image,
-    Platform,
     ScrollView,
     StyleSheet,
-    Text,
     TouchableOpacity,
     View,
     ViewStyle,
@@ -12,9 +10,10 @@ import {
     ImageStyle
 } from 'react-native';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 
 import { translate } from "../helpers/i18n";
+import { themedColors } from '../constants/Colors';
 import SignInScreen from './profile/SignIn';
 import BtnLarge from '../components/ui/BtnLarge';
 import TextBold from '../components/ui/TextBold';
@@ -34,24 +33,16 @@ import {
     ChatProfileSvg,
 } from '../components/icons/ButtonSvgIcons';
 import { logOut } from '../helpers/user';
-import { ThemeColors, User, SiteData, NavigationProp } from '../types';
-
-// Types
-interface ProfileScreenState {
-    data: any[];
-}
+import { User, SiteData, NavigationProp } from '../types';
 
 interface ProfileScreenProps {
     navigation: NavigationProp;
-    apColors: ThemeColors;
     user: User;
     site: SiteData;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, user, site }) => {
-    const [state, setState] = useState<ProfileScreenState>({
-        data: []
-    });
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, user, site }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
 
     const handleLogOut = useCallback(() => {
         logOut();
@@ -71,7 +62,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
     }, [navigation]);
 
     const handleBookmarks = useCallback(() => {
-        navigation.navigate('Bookmarks');
+        navigation.navigate('BookmarksStack' as any, { screen: 'Bookmarks' } as any);
     }, [navigation]);
 
     const handleLanguage = useCallback(() => {
@@ -123,9 +114,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
             {insets => (
                 <View style={[styles.container, {
                     backgroundColor: apColors.secondBg,
-                    paddingTop: insets.top,
-                    paddingLeft: insets.left,
-                    paddingRight: insets.right
+                    paddingTop: insets?.top,
+                    paddingLeft: insets?.left,
+                    paddingRight: insets?.right
                 }]}>
                     <ScrollView
                         style={{ flex: 1 }}
@@ -171,7 +162,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                 <View style={styles.menuLeft}>
                                     <NotificationsSvg color={apColors.regularText} />
                                     <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                        {translate('notifications')}
+                                        {translate('profile', 'notis')}
                                     </TextRegular>
                                 </View>
                                 <ArrowDetailsSvg color={apColors.addressText} />
@@ -199,7 +190,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                 <View style={styles.menuLeft}>
                                     <CardsSvg color={apColors.regularText} />
                                     <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                        {translate('bookmarks')}
+                                        {translate('profile', 'bookmarks')}
                                     </TextRegular>
                                 </View>
                                 <ArrowDetailsSvg color={apColors.addressText} />
@@ -213,7 +204,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                 <View style={styles.menuLeft}>
                                     <LanguageSvg color={apColors.regularText} />
                                     <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                        {translate('language')}
+                                        {translate('profile', 'language')}
                                     </TextRegular>
                                 </View>
                                 <ArrowDetailsSvg color={apColors.addressText} />
@@ -227,7 +218,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                 <View style={styles.menuLeft}>
                                     <CurrencySvg color={apColors.regularText} />
                                     <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                        {translate('currency')}
+                                        {translate('profile', 'currency')}
                                     </TextRegular>
                                 </View>
                                 <ArrowDetailsSvg color={apColors.addressText} />
@@ -241,7 +232,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                 <View style={styles.menuLeft}>
                                     <ChatProfileSvg color={apColors.regularText} />
                                     <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                        {translate('chat')}
+                                        {translate('profile', 'chat')}
                                     </TextRegular>
                                 </View>
                                 <ArrowDetailsSvg color={apColors.addressText} />
@@ -251,7 +242,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                         {/* Legal Section */}
                         <View style={styles.legalWrap}>
                             <TextRegular style={[styles.legalTitle, { color: apColors.addressText }]}>
-                                {translate('legal')}
+                                {translate('profile', 'legal')}
                             </TextRegular>
 
                             {/* Terms */}
@@ -263,7 +254,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                     <View style={styles.menuLeft}>
                                         <TermsSvg color={apColors.regularText} />
                                         <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                            {translate('terms_conditions')}
+                                            {translate('profile', 'terms_conditions')}
                                         </TextRegular>
                                     </View>
                                     <ArrowDetailsSvg color={apColors.addressText} />
@@ -279,7 +270,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                     <View style={styles.menuLeft}>
                                         <PrivacySvg color={apColors.regularText} />
                                         <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                            {translate('privacy_policy')}
+                                            {translate('profile', 'privacy_policy')}
                                         </TextRegular>
                                     </View>
                                     <ArrowDetailsSvg color={apColors.addressText} />
@@ -295,7 +286,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                     <View style={styles.menuLeft}>
                                         <HelpCenterSvg color={apColors.regularText} />
                                         <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                            {translate('help_center')}
+                                            {translate('profile', 'help_center')}
                                         </TextRegular>
                                     </View>
                                     <ArrowDetailsSvg color={apColors.addressText} />
@@ -311,7 +302,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                     <View style={styles.menuLeft}>
                                         <AboutUsSvg color={apColors.regularText} />
                                         <TextRegular style={[styles.menuText, { color: apColors.regularText }]}>
-                                            {translate('about_us')}
+                                            {translate('profile', 'about_us')}
                                         </TextRegular>
                                     </View>
                                     <ArrowDetailsSvg color={apColors.addressText} />
@@ -327,7 +318,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation, apColors, use
                                 style={styles.logoutButton} 
                                 onPress={handleLogOut}
                             >
-                                {translate('logout')}
+                                {translate('profile', 'logout')}
                             </BtnLarge>
                         </View>
                     </ScrollView>

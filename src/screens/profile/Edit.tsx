@@ -18,7 +18,7 @@ import moment from 'moment';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { connect } from 'react-redux';
 
-import { boldFontFamily } from '../../constants/Colors';
+import { boldFontFamily, themedColors } from '../../constants/Colors';
 import { translate } from "../../helpers/i18n";
 import TextHeavy from '../../components/ui/TextHeavy';
 import TextBold from '../../components/ui/TextBold';
@@ -701,6 +701,7 @@ const styles = StyleSheet.create({
 const mapStateToProps = (state: any) => ({
     user: state.user,
     profile: state.profile,
+    apColors: state.apColors || themedColors.default,
 });
 
 export default connect(mapStateToProps)(EditProfile);

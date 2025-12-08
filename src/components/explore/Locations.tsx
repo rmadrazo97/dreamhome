@@ -6,14 +6,12 @@ import {
     Image,
     TouchableOpacity,
     StyleSheet,
-    useColorScheme,
     ViewStyle,
     TextStyle,
     ImageStyle,
 } from 'react-native';
 import NavigationService from '../../helpers/NavigationService';
 import { filterByLoc } from '../../helpers/store';
-import getThemedColors from '../../helpers/Theme';
 import { translate } from "../../helpers/i18n";
 import SectionTitle from './SectionTitle';
 import TextRegular from '../ui/TextRegular';
@@ -33,11 +31,10 @@ interface LocationsProps {
 interface LocationCardProps {
     post: Location;
     onPress: (location: Location) => void;
+    apColors: ThemeColors;
 }
 
-const LocationCard: React.FC<LocationCardProps> = ({ post, onPress }) => {
-    const colors = getThemedColors(useColorScheme());
-    
+const LocationCard: React.FC<LocationCardProps> = ({ post, onPress, apColors }) => {
     const handlePress = useCallback(() => {
         onPress(post);
     }, [post, onPress]);
@@ -51,12 +48,14 @@ const LocationCard: React.FC<LocationCardProps> = ({ post, onPress }) => {
                     )}
                 </View>
                 <View style={styles.cardDetails}>
-                    <TextHeavy style={[styles.cardTitle, { color: colors.taxTitle }]}>
+                    <TextHeavy style={[styles.cardTitle, { color: apColors.taxTitle }]}>
                         {post.title}
                     </TextHeavy>
-                    <TextRegular style={[styles.cardSubTitle, { color: colors.taxCount }]}>
-                        {translate('home', 'lcount', { count: post.count })}
-                    </TextRegular>
+                    {post.count !== undefined && post.count > 0 && (
+                        <TextRegular style={[styles.cardSubTitle, { color: apColors.taxCount }]}>
+                            {translate('home', 'lcount', { count: post.count })}
+                        </TextRegular>
+                    )}
                 </View>
             </TouchableOpacity>
         </View>
@@ -88,6 +87,7 @@ const Locations: React.FC<LocationsProps> = ({ apColors, eleObj, style }) => {
                 key={post.id || index} 
                 post={post} 
                 onPress={goToArchive}
+                apColors={apColors}
             />
         ));
     };
@@ -100,6 +100,7 @@ const Locations: React.FC<LocationsProps> = ({ apColors, eleObj, style }) => {
                 showAll={show_view_all} 
                 allText={viewall_text} 
                 onViewAllPress={handleViewAll}
+                apColors={apColors}
             />
             <ScrollView 
                 horizontal={true} 

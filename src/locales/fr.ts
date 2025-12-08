@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "Notifications",
+        bookmarks: "Signets",
         logout: "Se déconnecter",
         chat: "Bavarder",
         currency: "Devise",
         language: "Langue",
+        legal: "Légal",
         about_us: "À propos de nous",
         help_center: "Centre d'aide",
         privacy_policy: "Politique de confidentialité",
@@ -190,7 +192,7 @@ export default {
     currency: {
         title: "DEVISE",
         apply: "CHANGEMENT",
-        no_currency: "Le site n'a pas de currecy",
+        no_currency: "Le site n'a pas de currency",
         changed: "Devise changée",
     },
     bookmarks: {

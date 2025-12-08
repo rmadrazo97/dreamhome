@@ -39,10 +39,10 @@ const MapCard: React.FC<MapCardProps> = ({
 }) => {
     const colors = getThemedColors(useColorScheme());
     
-    const { ID, thumbnail, title, address, price, rating, distance } = listing;
+    const { ID, thumbnail, title, rating, distance } = listing;
     
     const isBookmarked = useMemo(() => {
-        return bookmarks && Array.isArray(bookmarks) && bookmarks.includes(ID);
+        return bookmarks && Array.isArray(bookmarks) && bookmarks.includes(ID as number);
     }, [bookmarks, ID]);
 
     const handlePress = useCallback(() => {
@@ -69,7 +69,7 @@ const MapCard: React.FC<MapCardProps> = ({
                 {isBookmarked && <BookmarkSvg style={styles.bookmarkIcon} />}
                 
                 <View style={styles.cardDetails}>
-                    <TextHeavy style={styles.cardTitle}>{title}</TextHeavy>
+                    <TextHeavy style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">{title}</TextHeavy>
                     
                     <View style={styles.cardBot}>
                         <Reviews 

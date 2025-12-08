@@ -5,7 +5,6 @@ import {
     View,
     TouchableOpacity,
     StyleSheet,
-    useColorScheme,
     ViewStyle,
     TextStyle,
 } from 'react-native';
@@ -13,10 +12,8 @@ import NavigationService from '../../helpers/NavigationService';
 import { filterByCat } from '../../helpers/store';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { aweIcon, categoryColor } from '../../helpers/helpers';
-import getThemedColors from '../../helpers/Theme';
 import SectionTitle from './SectionTitle';
 import TextRegular from '../ui/TextRegular';
-import TextMedium from '../ui/TextMedium';
 import TextBold from '../ui/TextBold';
 import { translate } from "../../helpers/i18n";
 
@@ -34,30 +31,38 @@ interface CatsSquareProps {
 interface CardProps {
     post: Category;
     onPress: (category: Category) => void;
+    apColors: ThemeColors;
 }
 
-const Card: React.FC<CardProps> = ({ post, onPress }) => {
-    const colors = getThemedColors(useColorScheme());
-    
+const Card: React.FC<CardProps> = ({ post, onPress, apColors }) => {
     const handlePress = useCallback(() => {
         onPress(post);
     }, [post, onPress]);
 
+    // Handle both API format (title) and legacy format (name)
+    const categoryName = post.title || post.name || '';
+    const categoryColorValue = post.color || '';
+    const categoryCount = post.count || 0;
+
     return (
         <TouchableOpacity onPress={handlePress} style={styles.card}>
-            <View style={[styles.iconWrap, { backgroundColor: categoryColor(post.color) }]}>
-                <FontAwesome5 
-                    name={aweIcon(post.icon)} 
-                    size={24} 
-                    color="#FFF" 
-                />
+            <View style={[styles.iconWrap, { backgroundColor: categoryColor(categoryColorValue) }]}>
+                {post.icon && (
+                    <FontAwesome5 
+                        name={aweIcon(post.icon)} 
+                        size={24} 
+                        color="#FFF" 
+                    />
+                )}
             </View>
-            <TextBold style={[styles.title, { color: colors.tText }]}>
-                {post.title}
+            <TextBold style={[styles.title, { color: apColors.tText }]} numberOfLines={2}>
+                {categoryName}
             </TextBold>
-            <TextRegular style={[styles.count, { color: colors.taxCount }]}>
-                {translate('home', 'ccount', { count: post.count })}
-            </TextRegular>
+            {categoryCount > 0 && (
+                <TextRegular style={[styles.count, { color: apColors.taxCount }]}>
+                    {translate('home', 'ccount', { count: categoryCount })}
+                </TextRegular>
+            )}
         </TouchableOpacity>
     );
 };
@@ -87,6 +92,7 @@ const CatsSquare: React.FC<CatsSquareProps> = ({ apColors, eleObj, style }) => {
                 key={post.id || index} 
                 post={post} 
                 onPress={goToArchive}
+                apColors={apColors}
             />
         ));
     };
@@ -98,6 +104,7 @@ const CatsSquare: React.FC<CatsSquareProps> = ({ apColors, eleObj, style }) => {
                 showAll={show_view_all} 
                 allText={viewall_text} 
                 onViewAllPress={handleViewAll}
+                apColors={apColors}
             />
             <ScrollView 
                 horizontal={true} 

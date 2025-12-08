@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { defaultLanguage, defaultCurrency } from '../constants/SiteDetails';
+import SiteDetails, { defaultLanguage, defaultCurrency } from '../constants/SiteDetails';
 import store from '../store';
 import axios from 'axios';
 import { 
@@ -19,23 +19,22 @@ interface ApiResponse {
     auth_token?: string;
 }
 
-// Utility function for timeout
-function timeout(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export const getUserDatas = async (): Promise<boolean> => {
+    console.log('getUserDatas');
     try {
         const user = await AsyncStorage.getItem('user');
+        console.log('user', user);
         if (!user) return false;
 
         try {
             const userObj: UserData = JSON.parse(user);
             const { id, authToken } = userObj;
-            
+            console.log('id', id);
+            console.log('authToken', authToken);
             if (!id || !authToken || id <= 0) return false;
-
-            const res = await axios.get<ApiResponse>(`/user/${id}`).catch(err => {
+            console.log('id', id);
+            console.log('authToken', authToken);
+            const res = await axios.get<ApiResponse>(`${SiteDetails.url}wp-json/cththemes/v1/listings/user/${id}`).catch(err => {
                 console.log('User fetch error:', err);
                 return null;
             });

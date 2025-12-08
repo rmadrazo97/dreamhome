@@ -1,24 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ThemeColors, NavigationProp } from '../types';
+import { ThemeColors } from '../../types';
 import { 
     View,
     FlatList,
     TouchableOpacity, 
     StyleSheet,
-    ActivityIndicator,
 } from 'react-native';
-import { SafeAreaConsumer } from 'react-native-safe-area-context';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 import NavigationService from '../../helpers/NavigationService';
 import { translate } from "../../helpers/i18n";
+import { themedColors } from "../../constants/Colors";
 import { getLanguageAsync, setLanguageAsync } from "../../helpers/user";
 import { setI18nConfig } from '../../helpers/i18n';
-
+import { changeAppLanguage } from '../../helpers/store';
 import TextRegular from '../../components/ui/TextRegular';
 import { CheckMarkSvg } from '../../components/icons/ButtonSvgIcons';
 import Loader from '../../components/Loader';
-
-// for redux
 import { connect } from 'react-redux';
 
 interface LanguageItem {
@@ -32,14 +29,13 @@ interface LanguageState {
 }
 
 interface LanguageProps {
-    navigation: NavigationProp;
     apColors: ThemeColors;
     currency: {
         submitting: boolean;
     };
 }
 
-const Language: React.FC<LanguageProps> = ({ navigation, apColors, currency }) => {
+const Language: React.FC<LanguageProps> = ({ apColors, currency }) => {
     const [state, setState] = useState<LanguageState>({
         selected: 'en'
     });
@@ -62,6 +58,8 @@ const Language: React.FC<LanguageProps> = ({ navigation, apColors, currency }) =
             await setLanguageAsync(vS);
             setState({ selected: vS.code });
             setI18nConfig(vS.code, vS.rtl);
+            // Dispatch Redux action to trigger app refresh
+            changeAppLanguage(vS.code);
             NavigationService.setParams({ appLanguage: vS.code });
         } catch (error) {
             console.error('Error setting language:', error);
@@ -87,18 +85,8 @@ const Language: React.FC<LanguageProps> = ({ navigation, apColors, currency }) =
     const { submitting } = currency;
 
     return (
-        <SafeAreaConsumer>
-            {insets => (
-                <View style={[
-                    styles.container,
-                    {
-                        backgroundColor: apColors.appBg,
-                        paddingLeft: insets.left,
-                        paddingRight: insets.right,
-                        paddingBottom: insets.bottom
-                    }
-                ]}>
-                    {submitting && <Loader loading={true} />}
+        <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: apColors.appBg }]}>
+                {submitting && <Loader loading={true} />}
 
                     <FlatList
                         data={languages}
@@ -124,9 +112,7 @@ const Language: React.FC<LanguageProps> = ({ navigation, apColors, currency }) =
                             </View>
                         )}
                     />
-                </View>
-            )}
-        </SafeAreaConsumer>
+        </SafeAreaView>
     );
 };
 
@@ -134,6 +120,7 @@ const Language: React.FC<LanguageProps> = ({ navigation, apColors, currency }) =
 const mapStateToProps = (state: any) => ({
     site: state.site,
     currency: state.currency,
+    apColors: state.apColors || themedColors.default,
 });
 
 const mapDispatchToProps = {};
@@ -149,7 +136,6 @@ interface LanguageItemProps {
 }
 
 const LanguageItem: React.FC<LanguageItemProps> = ({ 
-    id, 
     itemobj, 
     selected, 
     onSelect, 
@@ -172,7 +158,6 @@ const LanguageItem: React.FC<LanguageItemProps> = ({
             {itemobj.code && selected === itemobj.code && (
                 <View style={[
                     styles.itemSubTitle,
-                    { color: apColors.pText }
                 ]}>
                     <CheckMarkSvg color={apColors.appColor} />
                 </View>

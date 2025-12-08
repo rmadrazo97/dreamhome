@@ -17,7 +17,7 @@ export const useTheme = (): ThemeContextType => {
     };
 };
 
-export default function getThemedColors(theme?: ColorSchemeName): ThemeColors {
+export function getThemedColors(theme?: ColorSchemeName): ThemeColors {
     const colors = theme ? themedColors[theme] : themedColors.default;
     if (!colors) {
         // Fallback to default colors if theme not found
@@ -25,3 +25,6 @@ export default function getThemedColors(theme?: ColorSchemeName): ThemeColors {
     }
     return colors as ThemeColors;
 }
+
+// Default export for backward compatibility
+export default getThemedColors;

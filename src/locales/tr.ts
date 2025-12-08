@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "Bildirimler",
+        bookmarks: "Yer İşaretleri",
         logout: "Çıkış Yap",
         chat: "Sohbet",
         currency: "Para birimi",
         language: "Dil",
+        legal: "Yasal",
         about_us: "Hakkımızda",
         help_center: "Yardım Merkezi",
         privacy_policy: "Gizlilik Politikası",

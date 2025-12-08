@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { ThemeColors, NavigationProp } from '../types';
 import {
     Image,
@@ -7,23 +7,20 @@ import {
     TouchableOpacity,
     View,
     RefreshControl,
-    ActivityIndicator,
 } from 'react-native';
-import { SafeAreaConsumer } from 'react-native-safe-area-context';
+import { SafeAreaConsumer, SafeAreaView } from 'react-native-safe-area-context';
 
 import HTML from 'react-native-render-html';
 import moment from 'moment';
 
 import BackButton from '../components/inners/BackButton';
 import { translate } from "../helpers/i18n";
-import { regularFontFamily } from '../constants/Colors';
+import { regularFontFamily, themedColors } from '../constants/Colors';
 import NavTitle from '../components/ui/NavTitle';
 import TextHeavy from '../components/ui/TextHeavy';
 import TextRegular from '../components/ui/TextRegular';
-
-// for redux
 import { getContacts } from '../actions/chat';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 
 // Types
 interface Contact {
@@ -37,13 +34,8 @@ interface Contact {
     crtime: number;
 }
 
-interface ChatState {
-    data: Contact[];
-}
-
 interface ChatScreenProps {
     navigation: NavigationProp;
-    apColors: ThemeColors;
     user: {
         ID: string;
     };
@@ -52,35 +44,27 @@ interface ChatScreenProps {
         loading: boolean;
         loaded: boolean;
     };
-    getContacts: (userId: string) => void;
 }
 
 const ChatScreen: React.FC<ChatScreenProps> = ({ 
     navigation, 
-    apColors, 
     user, 
     chat, 
-    getContacts 
 }) => {
-    const [state, setState] = useState<ChatState>({
-        data: []
-    });
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default as ThemeColors;
 
     useEffect(() => {
         const { loaded } = chat;
+        console.log('loaded', loaded);
+        console.log('user.ID', user.ID);
         if (!loaded) {
             getContacts(user.ID);
         }
-    }, [chat.loaded, getContacts, user.ID]);
-
-    const onGoBack = useCallback(() => {
-        const backRoute = navigation.getParam?.('backRoute') || 'Home';
-        navigation.navigate(backRoute);
-    }, [navigation]);
+    }, [chat, user.ID]);
 
     const renderHeader = useCallback((cstyle = {}) => {
         return (
-            <View style={[
+            <SafeAreaView style={[
                 styles.navBar,
                 { backgroundColor: apColors.appBg },
                 apColors.headerNavStyle,
@@ -89,20 +73,20 @@ const ChatScreen: React.FC<ChatScreenProps> = ({
                 <BackButton 
                     color={apColors.backBtn} 
                     style={styles.backButton} 
-                    onPress={onGoBack} 
+                    onPress={() => navigation.goBack()} 
                 />
                 <NavTitle title={translate('chat', 'hTitle')} />
                 <TextHeavy style={[styles.headerTitle, apColors.headerTitleStyle]}>
                     {translate('chat', 'hTitle')}
                 </TextHeavy>
                 <View style={styles.headerSpacer} />
-            </View>
+            </SafeAreaView>
         );
-    }, [apColors, onGoBack]);
+    }, [apColors, navigation]);
 
     const onSelect = useCallback((reply: Contact) => {
         const { cid, crid, display_name, touid, user_one } = reply;
-        navigation.navigate('ReplyNew', { 
+        navigation.navigate('Reply', { 
             cid, 
             crid, 
             display_name, 

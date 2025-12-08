@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "通知事项",
+        bookmarks: "书签",
         logout: "登出",
         chat: "聊天室",
         currency: "货币",
         language: "语言",
+        legal: "法律",
         about_us: "关于我们",
         help_center: "帮助中心",
         privacy_policy: "隐私政策",

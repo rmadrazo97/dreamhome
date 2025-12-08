@@ -16,7 +16,7 @@ import {
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
-import { mediumFontFamily, regularFontFamily } from '../constants/Colors';
+import { mediumFontFamily, regularFontFamily, themedColors } from '../constants/Colors';
 import { translate } from "../helpers/i18n";
 import { checkBkPayment } from "../helpers/store";
 import BtnLarge from '../components/ui/BtnLarge';
@@ -685,6 +685,7 @@ const styles = StyleSheet.create({
 const mapStateToProps = (state: any) => ({
     booking: state.booking,
     user: state.user,
+    apColors: state.apColors || themedColors.default,
 });
 
 export default connect(mapStateToProps)(CheckoutScreen);

@@ -1,26 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ThemeColors, NavigationProp } from '../types';
+import { ThemeColors } from '../../types';
 import { 
     View,
     FlatList,
     TouchableOpacity, 
     StyleSheet,
     ActivityIndicator,
-    RefreshControl
+    RefreshControl,
 } from 'react-native';
-import { SafeAreaConsumer } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import HTML from 'react-native-render-html';
 import moment from 'moment';
 
 import { translate } from "../../helpers/i18n";
-import { regularFontFamily } from "../../constants/Colors";
-import BackButton from '../../components/inners/BackButton';
+import { regularFontFamily, themedColors } from "../../constants/Colors";
 import TextRegular from '../../components/ui/TextRegular';
 import Loader from '../../components/Loader';
 
 // for redux
 import { getNotifications, refreshNotifications, loadMoreNotifications } from '../../actions/user';
-import { connect } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 
 interface NotificationItem {
     id: string;
@@ -34,7 +33,6 @@ interface NotificationsState {
 }
 
 interface NotificationsProps {
-    navigation: NavigationProp;
     apColors: ThemeColors;
     user: {
         ID: string;
@@ -44,28 +42,22 @@ interface NotificationsProps {
         notislmore: boolean;
     };
     loading: boolean;
-    getNotifications: (userId: string) => void;
-    refreshNotifications: (userId: string) => void;
-    loadMoreNotifications: (userId: string, page: number) => void;
 }
 
 const Notifications: React.FC<NotificationsProps> = ({ 
-    navigation, 
     apColors, 
     user, 
-    loading, 
-    getNotifications, 
-    refreshNotifications, 
-    loadMoreNotifications 
+    loading
 }) => {
     const [state, setState] = useState<NotificationsState>({
         selected: new Map(),
         paged: 1
     });
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        getNotifications(user.ID);
-    }, [getNotifications, user.ID]);
+        getNotifications(user.ID, dispatch);
+    }, [dispatch, user.ID]);
 
     const onSelect = useCallback((id: string) => {
         setState(prevState => {
@@ -78,7 +70,7 @@ const Notifications: React.FC<NotificationsProps> = ({
     const onRefresh = useCallback(() => {
         refreshNotifications(user.ID);
         setState(prevState => ({ ...prevState, paged: 1 }));
-    }, [refreshNotifications, user.ID]);
+    }, [user.ID]);
 
     const onEndReached = useCallback(() => {
         const { notipages, notislmore } = user;
@@ -87,7 +79,7 @@ const Notifications: React.FC<NotificationsProps> = ({
             loadMoreNotifications(user.ID, newPaged);
             setState(prevState => ({ ...prevState, paged: newPaged }));
         }
-    }, [user, state.paged, loadMoreNotifications]);
+    }, [user, state.paged]);
 
     const { selected } = state;
     const { notifications, notipages, notisloading, notislmore } = user;
@@ -97,17 +89,7 @@ const Notifications: React.FC<NotificationsProps> = ({
     }
 
     return (
-        <SafeAreaConsumer>
-            {insets => (
-                <View style={[
-                    styles.container,
-                    {
-                        backgroundColor: apColors.appBg,
-                        paddingLeft: insets.left,
-                        paddingRight: insets.right,
-                        paddingBottom: insets.bottom
-                    }
-                ]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: apColors.appBg }]}>
                     <FlatList
                         data={notifications}
                         renderItem={({ item }) => (
@@ -159,9 +141,7 @@ const Notifications: React.FC<NotificationsProps> = ({
                             </View>
                         )}
                     />
-                </View>
-            )}
-        </SafeAreaConsumer>
+                </SafeAreaView>
     );
 };
 
@@ -169,6 +149,7 @@ const Notifications: React.FC<NotificationsProps> = ({
 const mapStateToProps = (state: any) => ({
     user: state.user,
     loading: state.loading,
+    apColors: state.apColors || themedColors.default,
 });
 
 const mapDispatchToProps = {
@@ -208,7 +189,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             {notiobj.message && notiobj.message !== '' && (
                 <HTML 
                     source={{ html: notiobj.message }}
-                    baseFontStyle={{
+                    baseStyle={{
                         fontFamily: regularFontFamily,
                         fontSize: 15, 
                         color: apColors.pText

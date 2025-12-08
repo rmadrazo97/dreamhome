@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ThemeColors, NavigationProp, Category, SiteData } from '../types';
+import { NavigationProp, Category, SiteData } from '../types';
 import { 
     View,
     FlatList,
@@ -10,13 +10,13 @@ import { SafeAreaConsumer } from 'react-native-safe-area-context';
 import { filterByCat } from '../helpers/store';
 import { translate } from "../helpers/i18n";
 import TaxCard from '../components/inners/TaxCard';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { AppState } from '../types';
+import { themedColors } from '../constants/Colors';
 
 // Types
 interface CatsScreenProps {
     navigation: NavigationProp;
-    apColors: ThemeColors;
     site: SiteData & {
         cats: Category[];
     };
@@ -28,7 +28,8 @@ interface ReduxState {
     };
 }
 
-const CatsScreen: React.FC<CatsScreenProps> = ({ navigation, apColors, site }) => {
+const CatsScreen: React.FC<CatsScreenProps> = ({ navigation, site }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
     const goToArchive = useCallback((term: Category) => {
         const { id } = term;
         if (id) {
@@ -82,7 +83,6 @@ const CatsScreen: React.FC<CatsScreenProps> = ({ navigation, apColors, site }) =
 // Map the redux state to your props
 const mapStateToProps = (state: any) => ({
     site: state.site,
-    apColors: state.apColors,
 });
 
 // Map your action creators to your props

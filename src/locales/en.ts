@@ -170,12 +170,13 @@ export default {
     // profile screen
     profile: {
         notis: 'Notifications',
-
+        bookmarks: 'Bookmarks',
         logout: 'Logout',
         chat: 'Chat',
         currency: 'Currency',
         language: 'Language',
         // chat: 'Chat',
+        legal: 'Legal',
         about_us: 'About us',
         help_center: 'Help center',
         privacy_policy: 'Privacy policy',
@@ -215,7 +216,7 @@ export default {
     currency: {
         title: 'CURRENCY',
         apply: 'CHANGE',
-        no_currency: 'The site have no currecy',
+        no_currency: 'The site have no currency',
         changed: 'Currency changed',
     },
     bookmarks: {

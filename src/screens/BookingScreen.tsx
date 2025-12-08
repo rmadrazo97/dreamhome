@@ -5,24 +5,18 @@ import {
     View,
     Text,
     TouchableOpacity,
-    Dimensions,
     ViewStyle,
     TextStyle,
     Alert
 } from 'react-native';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
-import moment from 'moment';
 import { connect } from 'react-redux';
 
-import { translate, dateFormat, dateTimeFormat } from "../helpers/i18n";
-import { fomartCurrOut, formatFloat, formatInt } from '../helpers/currency';
+import { translate } from "../helpers/i18n";
+import { fomartCurrOut } from '../helpers/currency';
 import Listing from '../components/booking/Listing';
-import TextMedium from '../components/ui/TextMedium';
 import TextHeavy from '../components/ui/TextHeavy';
-import TextRegular from '../components/ui/TextRegular';
-import BtnFull from '../components/ui/BtnFull';
 import Rooms from '../components/booking/Rooms';
-import Slots from '../components/booking/Slots';
 import Tickets from '../components/booking/Tickets';
 import Menus from '../components/booking/Menus';
 import Quantity from '../components/booking/Quantity';
@@ -32,6 +26,7 @@ import TimeSlots from '../components/booking/TimeSlots';
 import LServices from '../components/booking/LServices';
 import { processToCheckout } from '../actions/booking';
 import { ThemeColors, NavigationProp, Room, Slot, Service, Menu, AppState, RouteProp } from '../types';
+import { themedColors } from '../constants/Colors';
 
 // Types
 interface BookingScreenState {
@@ -67,7 +62,9 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
     apColors,
     route
 }) => {
-    console.log('route', route.params);
+    // Ensure apColors has a fallback
+    const colors = apColors || themedColors.default;
+    
     const [state, setState] = useState<BookingScreenState>({
         rooms: [],
         rooms_old_data: [],
@@ -97,11 +94,13 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
     // Initialize booking data from route params
     useEffect(() => {
         try {
-            const routeParams = route.params;
+            const routeParams = route?.params;
             if (routeParams) {
                 setState(prevState => ({
                     ...prevState,
                     listing: routeParams.listing || null,
+                    checkin: routeParams.checkin || '',
+                    checkout: routeParams.checkout || '',
                     loading: false,
                 }));
             } else {
@@ -118,7 +117,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
                 error: 'Failed to load booking data',
             }));
         }
-    }, [navigation]);
+    }, [route]);
 
     // Memoized total calculation
     const totalPrice = useMemo(() => {
@@ -323,17 +322,17 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
         return (
             <Listing 
                 data={state.listing} 
-                apColors={apColors}
+                apColors={colors}
             />
         );
-    }, [state.listing, apColors]);
+    }, [state.listing, colors]);
 
     const roomsSection = useMemo(() => {
-        if (state.rooms.length === 0) return null;
+        if (!state.listing?.rooms || state.listing.rooms.length === 0) return null;
         
         return (
             <View style={styles.section}>
-                <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                     {translate('select_rooms')}
                 </TextHeavy>
                 <Rooms
@@ -341,125 +340,125 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
                     checkout={state.checkout}
                     lid={state.listing?.id}
                     priceBased={state.listing}
-                    apColors={apColors}
+                    apColors={colors}
                     onSelectRooms={handleSelectRooms}
                 />
             </View>
         );
-    }, [state.rooms, state.checkin, state.checkout, state.listing, apColors, handleSelectRooms]);
+    }, [state.rooms, state.checkin, state.checkout, state.listing, colors, handleSelectRooms]);
 
     const timeSlotsSection = useMemo(() => {
-        if (state.tour_slots.length === 0) return null;
+        if (!state.listing?.slots || state.listing.slots.length === 0) return null;
         
         return (
             <View style={styles.section}>
-                <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                     {translate('select_time_slots')}
                 </TextHeavy>
                 <TimeSlots
                     slots={state.tour_slots}
-                    apColors={apColors}
+                    apColors={colors}
                     onSelectSlots={handleSelectSlots}
                 />
             </View>
         );
-    }, [state.tour_slots, apColors, handleSelectSlots]);
+    }, [state.tour_slots, state.listing, colors, handleSelectSlots]);
 
     const ticketsSection = useMemo(() => {
-        if (state.tickets.length === 0) return null;
+        if (!state.listing?.tickets || state.listing.tickets.length === 0) return null;
         
         return (
             <View style={styles.section}>
-                <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                     {translate('select_tickets')}
                 </TextHeavy>
                 <Tickets
                     tickets={state.tickets}
-                    apColors={apColors}
+                    apColors={colors}
                     onSelectTickets={handleSelectTickets}
                 />
             </View>
         );
-    }, [state.tickets, apColors, handleSelectTickets]);
+    }, [state.tickets, state.listing, colors, handleSelectTickets]);
 
     const servicesSection = useMemo(() => {
-        if (state.book_services.length === 0) return null;
+        if (!state.listing?.services || state.listing.services.length === 0) return null;
         
         return (
             <View style={styles.section}>
-                <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                     {translate('select_services')}
                 </TextHeavy>
                 <LServices
                     services={state.book_services}
-                    apColors={apColors}
+                    apColors={colors}
                     onSelectServices={handleSelectServices}
                 />
             </View>
         );
-    }, [state.book_services, apColors, handleSelectServices]);
+    }, [state.book_services, state.listing, colors, handleSelectServices]);
 
     const menusSection = useMemo(() => {
-        if (state.bk_menus.length === 0) return null;
+        if (!state.listing?.menus || state.listing.menus.length === 0) return null;
         
         return (
             <View style={styles.section}>
-                <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                     {translate('select_menus')}
                 </TextHeavy>
                 <Menus
                     menus={state.bk_menus}
-                    apColors={apColors}
+                    apColors={colors}
                     onSelectMenus={handleSelectMenus}
                 />
             </View>
         );
-    }, [state.bk_menus, apColors, handleSelectMenus]);
+    }, [state.bk_menus, state.listing, colors, handleSelectMenus]);
 
     const personSlotsSection = useMemo(() => {
         if (state.bk_person_slots.length === 0) return null;
         
         return (
             <View style={styles.section}>
-                <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                     {translate('person_slots')}
                 </TextHeavy>
                 <PersonSlots
                     slots={state.bk_person_slots}
-                    apColors={apColors}
+                    apColors={colors}
                     onSelectSlots={handlePersonSlotsChange}
                 />
             </View>
         );
-    }, [state.bk_person_slots, apColors, handlePersonSlotsChange]);
+    }, [state.bk_person_slots, colors, handlePersonSlotsChange]);
 
     const timeSlotsSection2 = useMemo(() => {
         if (state.bk_time_slots.length === 0) return null;
         
         return (
             <View style={styles.section}>
-                <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                     {translate('time_slots')}
                 </TextHeavy>
                 <TimeSlots
                     slots={state.bk_time_slots}
-                    apColors={apColors}
+                    apColors={colors}
                     onSelectSlots={handleTimeSlotsChange}
                 />
             </View>
         );
-    }, [state.bk_time_slots, apColors, handleTimeSlotsChange]);
+    }, [state.bk_time_slots, colors, handleTimeSlotsChange]);
 
     // Error state
     if (state.error) {
         return (
-            <View style={[styles.container, { backgroundColor: apColors.appBg }]}>
+            <View style={[styles.container, { backgroundColor: colors.appBg }]}>
                 <View style={styles.errorContainer}>
-                    <Text style={[styles.errorText, { color: apColors.errorText }]}>
+                    <Text style={[styles.errorText, { color: colors.errorColor }]}>
                         {state.error}
                     </Text>
                     <TouchableOpacity 
-                        style={[styles.retryButton, { backgroundColor: apColors.appColor }]}
+                        style={[styles.retryButton, { backgroundColor: colors.appColor }]}
                         onPress={() => setState(prevState => ({ ...prevState, error: null, loading: true }))}
                     >
                         <Text style={styles.retryButtonText}>Retry</Text>
@@ -472,9 +471,9 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
     // Loading state
     if (state.loading) {
         return (
-            <View style={[styles.container, { backgroundColor: apColors.appBg }]}>
+            <View style={[styles.container, { backgroundColor: colors.appBg }]}>
                 <View style={styles.loadingContainer}>
-                    <Text style={[styles.loadingText, { color: apColors.regularText }]}>
+                    <Text style={[styles.loadingText, { color: colors.regularText }]}>
                         {translate('loading')}...
                     </Text>
                 </View>
@@ -486,7 +485,7 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
         <SafeAreaConsumer>
             {insets => (
                 <View style={[styles.container, { 
-                    backgroundColor: apColors.appBg,
+                    backgroundColor: colors.appBg,
                     paddingTop: insets.top,
                     paddingLeft: insets.left,
                     paddingRight: insets.right
@@ -512,24 +511,24 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
 
                         {/* Quantity Section */}
                         <View style={styles.section}>
-                            <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                            <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                                 {translate('quantity')}
                             </TextHeavy>
                             <Quantity
                                 value={state.bk_qtts}
-                                apColors={apColors}
+                                apColors={colors}
                                 onChange={handleQuantityChange}
                             />
                         </View>
 
                         {/* Persons Section */}
                         <View style={styles.section}>
-                            <TextHeavy style={[styles.sectionTitle, { color: apColors.hText }]}>
+                            <TextHeavy style={[styles.sectionTitle, { color: colors.hText }]}>
                                 {translate('persons')}
                             </TextHeavy>
                             <Person
                                 value={state.bk_persons}
-                                apColors={apColors}
+                                apColors={colors}
                                 onChange={handlePersonsChange}
                             />
                         </View>
@@ -541,12 +540,12 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
                         {timeSlotsSection2}
 
                         {/* Total Price */}
-                        <View style={[styles.totalSection, { backgroundColor: apColors.secondBg, borderTopColor: apColors.separator }]}>
+                        <View style={[styles.totalSection, { backgroundColor: colors.secondBg, borderTopColor: colors.separator }]}>
                             <View style={styles.totalRow}>
-                                <TextHeavy style={[styles.totalLabel, { color: apColors.hText }]}>
+                                <TextHeavy style={[styles.totalLabel, { color: colors.hText }]}>
                                     {translate('total')}:
                                 </TextHeavy>
-                                <TextHeavy style={[styles.totalPrice, { color: apColors.appColor }]}>
+                                <TextHeavy style={[styles.totalPrice, { color: colors.appColor }]}>
                                     {fomartCurrOut(state.total_price)}
                                 </TextHeavy>
                             </View>
@@ -554,9 +553,9 @@ const BookingScreen: React.FC<BookingScreenProps> = ({
                     </ScrollView>
 
                     {/* Bottom Button */}
-                    <View style={[styles.bottomButton, { backgroundColor: apColors.appBg, borderTopColor: apColors.separator }]}>
+                    <View style={[styles.bottomButton, { backgroundColor: colors.appBg, borderTopColor: colors.separator }]}>
                         <TouchableOpacity
-                            style={[styles.checkoutButton, { backgroundColor: apColors.appColor }]}
+                            style={[styles.checkoutButton, { backgroundColor: colors.appColor }]}
                             onPress={handleProceedToCheckout}
                         >
                             <TextHeavy style={styles.checkoutButtonText}>
@@ -651,6 +650,7 @@ const mapStateToProps = (state: AppState) => ({
     booking: state.booking,
     listing: state.listings,
     user: state.user,
+    apColors: (state as any).apColors || themedColors.default,
 });
 
 export default connect(mapStateToProps)(BookingScreen);

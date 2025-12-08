@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ThemeColors, NavigationProp, Location, SiteData } from '../types';
+import { NavigationProp, Location, SiteData } from '../types';
 import { 
     View,
     FlatList,
@@ -9,14 +9,14 @@ import {
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
 import { filterByLoc } from '../helpers/store';
 import { translate } from "../helpers/i18n";
+import { themedColors } from '../constants/Colors';
 import TaxOverCard from '../components/inners/TaxOverCard';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { AppState } from '../types/redux';
 
 // Types
 interface LocsScreenProps {
     navigation: NavigationProp;
-    apColors: ThemeColors;
     site: SiteData & {
         locs: Location[];
     };
@@ -28,7 +28,8 @@ interface ReduxState {
     };
 }
 
-const LocsScreen: React.FC<LocsScreenProps> = ({ navigation, apColors, site }) => {
+const LocsScreen: React.FC<LocsScreenProps> = ({ navigation, site }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
     const goToArchive = useCallback((term: Location) => {
         const { id } = term;
         if (id) {

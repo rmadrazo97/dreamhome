@@ -11,10 +11,12 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 
 import { getAppLangCode } from '../helpers/store';
-import { mediumFontFamily } from '../constants/Colors';
+import { mediumFontFamily, themedColors } from '../constants/Colors';
 import { translate } from "../helpers/i18n";
 import { getUserDatas } from '../helpers/user';
 import BackButton from '../components/inners/BackButton';
@@ -22,15 +24,15 @@ import TextRegular from '../components/ui/TextRegular';
 import TextHeavy from '../components/ui/TextHeavy';
 import Loader from '../components/Loader';
 import ErrorSuccessPopup from '../components/ErrorSuccessPopup';
-import { ThemeColors, NavigationProp } from '../types';
+import { NavigationProp } from '../types';
 
 // Types
 interface SignInProps {
     navigation: NavigationProp;
-    apColors: ThemeColors;
 }
 
-const SignInScreen: React.FC<SignInProps> = ({ navigation, apColors }) => {
+const SignInScreen: React.FC<SignInProps> = ({ navigation }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
     // Separate state hooks
     const [log, setLog] = useState('');
     const [password, setPassword] = useState('');
@@ -91,22 +93,22 @@ const SignInScreen: React.FC<SignInProps> = ({ navigation, apColors }) => {
 
         try {
             const lang = await getAppLangCode();
-            const response = await axios.post('https://dreamhome.techlead.solutions/wp-json/cththemes/v1/listings/login', {
+            const response = await axios.post('https://dreamhome.com.gt/wp-json/cththemes/v1/listings/login', {
                 log,
                 password,
                 cthlang: lang
             });
-            console.log('response', response);
+            console.log('response', response.data.data);
             if (response.data && response.data.success) {
-                const { user, authToken } = response.data;
+                const { user_id, auth_token } = response.data.data;
                 
                 // Store user data
                 await AsyncStorage.setItem('user', JSON.stringify({
-                    id: user.id,
-                    authToken,
-                    display_name: user.display_name,
-                    avatar: user.avatar,
-                    role_name: user.role_name
+                    id: user_id,
+                    authToken: auth_token,
+                    display_name: 'Dream Home',
+                    avatar: '',
+                    role_name: 'User'
                 }));
 
                 // Get user data and update Redux store
@@ -124,8 +126,13 @@ const SignInScreen: React.FC<SignInProps> = ({ navigation, apColors }) => {
 
                 // Navigate after successful login
                 setTimeout(() => {
-                    navigation.navigate('Home');
-                }, 2000);
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'NearStack' }],
+                        })
+                    );
+                }, 1000);
 
             } else {
                 setValidating(false);

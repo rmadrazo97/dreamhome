@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useColorScheme } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
@@ -19,7 +19,7 @@ import CheckoutScreen from '../screens/CheckoutScreen';
 
 import { translate } from "../helpers/i18n";
 import BackButton from '../components/inners/BackButton';
-import { ThemeColors } from '../types';
+import { themedColors } from '../constants/Colors';
 
 // Define BackButton component outside of render
 const BackButtonComponent = ({ color, onPress }: { color: string; onPress: () => void }) => (
@@ -35,11 +35,12 @@ const Stack = createStackNavigator();
 interface HomeStackProps {
     navigation: any;
     route: any;
-    apColors: ThemeColors;
 }
 
-const HomeStack: React.FC<HomeStackProps> = ({ navigation, route, apColors }) => {
-    // Add null check for apColors
+const HomeStack: React.FC<HomeStackProps> = ({ navigation, route }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
+    
+    // apColors should always be available from reducer's initialState
     if (!apColors) {
         return null;
     }
@@ -62,11 +63,11 @@ const HomeStack: React.FC<HomeStackProps> = ({ navigation, route, apColors }) =>
             })}
         >
             <Stack.Screen name="Home" options={{ headerShown: false }}>
-                {props => <HomeScreen {...props} apColors={apColors} apTheme={useColorScheme() as 'light' | 'dark'} />}
+                {props => <HomeScreen {...props} apTheme={useColorScheme() as 'light' | 'dark'} />}
             </Stack.Screen>
             
             <Stack.Screen name="Locations" options={{ title: translate('loc_screen') }}>
-                {props => <LocsScreen {...props} apColors={apColors} />}
+                {props => <LocsScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Categories" options={{ title: translate('cat_screen') }}>
@@ -78,11 +79,11 @@ const HomeStack: React.FC<HomeStackProps> = ({ navigation, route, apColors }) =>
                 options={{ title: translate('archive_screen') }}
                 initialParams={{ appColor: apColors.appColor }}
             >
-                {props => <ArchiveScreen {...props} apColors={apColors} />}
+                {props => <ArchiveScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Map" options={{ headerShown: false }}>
-                {props => <MapScreen {...props} apColors={apColors} />}
+                {props => <MapScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Listing" options={{ headerShown: false }}>
@@ -90,15 +91,15 @@ const HomeStack: React.FC<HomeStackProps> = ({ navigation, route, apColors }) =>
             </Stack.Screen>
             
             <Stack.Screen name="Comments" options={{ title: translate('reviews_screen') }}>
-                {props => <CommentsScreen {...props} apColors={apColors} />}
+                {props => <CommentsScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Claim" options={{ title: translate('claim_screen') }}>
-                {props => <ClaimScreen {...props} apColors={apColors} />}
+                {props => <ClaimScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Report" options={{ title: translate('report_screen') }}>
-                {props => <ReportScreen {...props} apColors={apColors} />}
+                {props => <ReportScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="ReplyNew" options={{ title: translate('reply_screen') }}>
@@ -106,22 +107,18 @@ const HomeStack: React.FC<HomeStackProps> = ({ navigation, route, apColors }) =>
             </Stack.Screen>
             
             <Stack.Screen name="Availability" options={{ title: translate('dates_screen') }}>
-                {props => <AvailabilityScreen {...props} apColors={apColors} />}
+                {props => <AvailabilityScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Booking" options={{ title: translate('bk_screen') }}>
-                {props => <BookingScreen {...props} apColors={apColors} />}
+                {props => <BookingScreen {...props} />}
             </Stack.Screen>
             
             <Stack.Screen name="Checkout" options={{ title: translate('ck_screen') }}>
-                {props => <CheckoutScreen {...props} apColors={apColors} />}
+                {props => <CheckoutScreen {...props} />}
             </Stack.Screen>
         </Stack.Navigator>
     );
 };
 
-const mapStateToProps = (state: any) => ({
-    apColors: state.apColors,
-});
-
-export default connect(mapStateToProps)(HomeStack);
+export default HomeStack;

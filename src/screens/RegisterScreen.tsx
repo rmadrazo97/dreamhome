@@ -145,7 +145,7 @@ const RegisterScreen = ({ navigation }: { navigation: any }) => {
 
         try {
             const langCode = await getAppLangCode();
-            const response = await axios.post('https://dreamhome.techlead.solutions/wp-json/cththemes/v1/listings/register', {
+            const response = await axios.post('https://dreamhome.com.gt/wp-json/cththemes/v1/listings/register', {
                 username: state.username.trim(),
                 email: state.email.trim().toLowerCase(),
                 password: state.password,

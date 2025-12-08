@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "お知らせ",
+        bookmarks: "ブックマーク",
         logout: "ログアウト",
         chat: "チャット",
         currency: "通貨",
         language: "言語",
+        legal: "法的",
         about_us: "私たちに関しては",
         help_center: "ヘルプセンター",
         privacy_policy: "個人情報保護方針",

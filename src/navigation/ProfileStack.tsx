@@ -1,5 +1,4 @@
 import React, { useLayoutEffect } from 'react';
-import { useColorScheme } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from "react-redux";
@@ -16,9 +15,10 @@ import SignInScreen from '../screens/SignInScreen';
 import ForgetPwdScreen from '../screens/ForgetPwdScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 
-import getThemedColors from '../helpers/Theme';
 import { translate } from "../helpers/i18n";
 import BackButton from '../components/inners/BackButton';
+import { themedColors } from '../constants/Colors';
+import BookingsScreen from '../screens/BookingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -30,7 +30,7 @@ interface ProfileStackProps {
 const ProfileStack: React.FC<ProfileStackProps> = ({ navigation, route }) => {
     const user = useSelector((state: any) => state.user);
     const { isLoggedIn } = user;
-    const colors = getThemedColors(useColorScheme());
+    const colors = useSelector((state: any) => state.apColors) || themedColors.default;
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route) ?? (isLoggedIn ? "Profile" : 'SignIn');
@@ -40,7 +40,7 @@ const ProfileStack: React.FC<ProfileStackProps> = ({ navigation, route }) => {
     return (
         <Stack.Navigator
             initialRouteName={isLoggedIn ? "Profile" : 'SignIn'}
-            screenOptions={({ navigation, route }) => ({
+            screenOptions={({ navigation }) => ({
                 gestureEnabled: false,
                 headerShown: false,
                 headerLeft: () => (
@@ -88,9 +88,12 @@ const ProfileStack: React.FC<ProfileStackProps> = ({ navigation, route }) => {
                     <Stack.Screen 
                         name="ProfileWeb" 
                         initialParams={{ title: 'Info', url: '' }} 
-                        options={({ route }) => ({ title: route.params.title })}
+                        options={({ route }) => ({ title: (route.params as any)?.title || 'Info' })}
                     >
                         {props => <WebScreen {...props} />}
+                    </Stack.Screen>
+                    <Stack.Screen name="Bookings" options={{ title: translate('bookings_screen') }}>
+                        {props => <BookingsScreen {...props} />}
                     </Stack.Screen>
                 </>
             ) : (
@@ -100,13 +103,13 @@ const ProfileStack: React.FC<ProfileStackProps> = ({ navigation, route }) => {
                         options={{ headerShown: false }} 
                         initialParams={{ loggedInRoute: 'Profile' }}
                     >
-                        {props => <SignInScreen {...props} apColors={colors} />}
+                        {props => <SignInScreen {...props} />}
                     </Stack.Screen>
-                    <Stack.Screen name="ForgetPwd" options={{ headerShown: false, tabBarVisible: false }}>
-                        {props => <ForgetPwdScreen {...props} apColors={colors} />}
+                    <Stack.Screen name="ForgetPwd" options={{ headerShown: false }}>
+                        {props => <ForgetPwdScreen {...props} />}
                     </Stack.Screen>
                     <Stack.Screen name="Register" options={{ headerShown: false }}>
-                        {props => <RegisterScreen {...props} apColors={colors} />}
+                        {props => <RegisterScreen {...props} />}
                     </Stack.Screen>
                 </>
             )}

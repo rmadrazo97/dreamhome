@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ThemeColors, NavigationProp } from '../types';
+import { themedColors } from '../../constants/Colors';
 import { 
     View,
     Image,
@@ -457,6 +458,7 @@ class SBookingScreen extends React.Component{
 const mapStateToProps = state => ({
     user: state.user,
     booking: state.booking,
+    apColors: state.apColors || themedColors.default,
 })
 
 //Map your action creators to your props.

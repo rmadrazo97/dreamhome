@@ -22,6 +22,7 @@ import TextMedium from '../components/ui/TextMedium';
 import TextHeavy from '../components/ui/TextHeavy';
 import { SearchSvg, CloseSvg, MarkerSvg, LightningSvg, PinterSvg } from '../components/icons/ButtonSvgIcons';
 import { ThemeColors, NavigationProp, Listing, SearchResult } from '../types';
+import { themedColors } from '../constants/Colors';
 
 // Types
 interface SearchScreenState {
@@ -337,6 +338,7 @@ const styles = StyleSheet.create({
 const mapStateToProps = (state: any) => ({
     site: state.site,
     listings: state.listings || [],
+    apColors: state.apColors || themedColors.default,
 });
 
 export default connect(mapStateToProps)(SearchScreen);

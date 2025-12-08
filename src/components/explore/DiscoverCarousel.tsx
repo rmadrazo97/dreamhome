@@ -187,7 +187,8 @@ const DiscoverCarousel: React.FC<DiscoverCarouselProps> = ({
 
     return (
         <View style={[styles.container, style]}>
-            <SectionTitle 
+            <SectionTitle
+                apColors={apColors} 
                 title={title} 
                 showAll={show_view_all} 
                 allText={viewall_text} 

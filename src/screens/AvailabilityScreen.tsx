@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ThemeColors, NavigationProp } from '../types';
+import { themedColors } from '../constants/Colors';
 import { 
     ScrollView, 
     StyleSheet,
@@ -336,6 +337,7 @@ const styles = StyleSheet.create({
 // Map the redux state to your props
 const mapStateToProps = (state: AppState) => ({
     listing: state.listings || {} as any,
+    apColors: (state as any).apColors || themedColors.default,
 });
 
 // Map your action creators to your props

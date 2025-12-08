@@ -28,6 +28,7 @@ import { getSiteDatas, getCurrencyAttrs } from './src/helpers/store';
 import { getUserDatas, getLanguageAsync } from './src/helpers/user';
 import { setApColors } from './src/reducers/apColors';
 import AppNavigator from './src/navigation/AppNavigator';
+import { useSelector } from 'react-redux';
 import TextRegular from './src/components/ui/TextRegular';
 import TextHeavy from './src/components/ui/TextHeavy';
 import { WifiSlash } from './src/components/icons/ButtonSvgIcons';
@@ -97,13 +98,30 @@ const OfflineScreen: React.FC<OfflineScreenProps> = ({ apColors, onRetry }) => {
 // App Content Component (can use hooks)
 const AppContent: React.FC = () => {
     const dispatch = useDispatch();
+    // Get current language from Redux to trigger remount when it changes
+    const currentLanguage = useSelector((state: any) => state.app?.language || 'en');
+    
     const [state, setState] = useState<AppState>({
         isConnected: true,
         isLoading: true,
         theme: Appearance.getColorScheme() as ColorSchemeName
     });
 
+    // Initialize apColors immediately on mount (synchronously, before any rendering)
+    // Using useLayoutEffect to ensure it runs before paint
+    React.useLayoutEffect(() => {
+        const initialColors = getThemedColors(Appearance.getColorScheme() as ColorSchemeName);
+        dispatch(setApColors(initialColors));
+    }, [dispatch]);
+    
+    // Also ensure it's set on every render if somehow missing (safety net)
+    React.useEffect(() => {
+        const currentColors = getThemedColors(state.theme);
+        dispatch(setApColors(currentColors));
+    }, [dispatch, state.theme]);
+
     const performTimeConsumingTask = useCallback(async () => {
+        console.log('performTimeConsumingTask');
         return await Promise.all([
             getUserDatas(),
             getCurrencyAttrs(),
@@ -121,6 +139,7 @@ const AppContent: React.FC = () => {
             }
 
             const data = await performTimeConsumingTask();
+            console.log('data', data);
             if (data !== null) {
                 setState(prevState => ({
                     ...prevState,
@@ -150,6 +169,53 @@ const AppContent: React.FC = () => {
         return false;
     }, []);
 
+
+    // Track if this is the initial mount
+    const isInitialMount = React.useRef(true);
+    
+    // Listen for language changes and reload app
+    useEffect(() => {
+        // Skip on initial mount
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+        
+        if (currentLanguage) {
+            // Language changed - reload app data
+            const reloadApp = async () => {
+                try {
+                    setState(prevState => ({
+                        ...prevState,
+                        isLoading: true
+                    }));
+                    
+                    const lang = await getLanguageAsync();
+                    if (lang?.code && lang.rtl !== null) {
+                        setI18nConfig(lang.code, lang.rtl);
+                    } else {
+                        setI18nConfig();
+                    }
+
+                    // Reload all app data
+                    await performTimeConsumingTask();
+                    
+                    setState(prevState => ({
+                        ...prevState,
+                        isLoading: false
+                    }));
+                } catch (error) {
+                    console.error('Error reloading app after language change:', error);
+                    setState(prevState => ({
+                        ...prevState,
+                        isLoading: false
+                    }));
+                }
+            };
+            
+            reloadApp();
+        }
+    }, [currentLanguage, performTimeConsumingTask]);
 
     useEffect(() => {
         let netInfoUnsubscribe: (() => void) | null = null;
@@ -186,13 +252,8 @@ const AppContent: React.FC = () => {
 
     const colors = getThemedColors(state.theme);
 
-    // Update Redux store with current colors
-    useEffect(() => {
-        dispatch(setApColors(colors));
-    }, [dispatch, colors]);
-
     return (
-        <SafeAreaProvider>
+        <SafeAreaProvider key={currentLanguage}>
             <View style={[styles.container, { backgroundColor: colors.appBg }]}>
                 {!state.isConnected ? (
                     <OfflineScreen apColors={colors} onRetry={onLoadDatas} />

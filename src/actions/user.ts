@@ -164,19 +164,14 @@ const getNotificationsFailure = (data: any) => ({
     payload: data,
 });
 
-export const getNotifications = (id: string | number) => {
-    return (dispatch: any) => {
+export const getNotifications = (id: string | number, dispatch: any) => {
+    console.log('getNotifications', id);
         dispatch(getNotificationsInit(true));
-        
         getAppLangCode().then((lang: string) => {
-            axios({
-                method: 'GET',
-                url: `/user/notifications/${id}`,
-                params: {
-                    paged: 1,
-                    cthlang: lang,
-                },
-            }).then((res: { data: ApiResponse & NotificationData }) => {
+            axios.get(`${SiteDetails.url}wp-json/cththemes/v1/user/notifications/${id}`, {
+                params: { cthlang: lang }
+            }).then((res: { data: any }) => {
+                console.log('res', res);
                 const { success } = res.data;
                 if (success) {
                     dispatch(getNotificationsSuccess(res.data.data, res.data.pages));
@@ -188,7 +183,6 @@ export const getNotifications = (id: string | number) => {
                 dispatch(getNotificationsFailure('Failed to load notifications'));
             });
         });
-    };
 };
 
 const refreshNotificationsInit = (bool: boolean) => ({
@@ -281,16 +275,79 @@ export const getBookings = (id: string | number, paged: number = 1, lmore: boole
     return (dispatch: any) => {
         dispatch(getBookingsInit(lmore));
 
-        axios.get(`/user/bookings/${id}?paged=${paged}`).then((res: { data: BookingData }) => {
-            const { items, pages } = res.data;
-            if (items && pages) {
-                dispatch(getBookingsSuccess(items, pages, lmore));
-            } else {
-                dispatch(getBookingsFailure(lmore, 'Response data error'));
-            }
-        }).catch((err: any) => {
-            console.error('Get bookings error:', err);
-            dispatch(getBookingsFailure(lmore, 'Internal error'));
+        getAppLangCode().then((lang: string) => {
+            axios.get(`${SiteDetails.url}wp-json/cththemes/v1/listings/user/bookings/${id}`, {
+                params: {
+                    paged: paged,
+                    cthlang: lang,
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': SiteDetails.app_key,
+                }
+            }).then((res: { data: ApiResponse & BookingData }) => {
+                // Handle both response formats: { success, data, pages } or { items, pages }
+                const response = res.data;
+                console.log('response bookings', response);
+                // Check if response has success field (new format)
+                if ('success' in response) {
+                    if (response.success && response.data) {
+                        // New format: { success: true, data: [...], pages: number }
+                        dispatch(getBookingsSuccess(response.data, response.pages || 0, lmore));
+                    } else {
+                        dispatch(getBookingsFailure(lmore, response.message || 'Failed to load bookings'));
+                    }
+                } else if ('items' in response) {
+                    // Legacy format: { items: [...], pages: number }
+                    const { items, pages } = response;
+                    if (items && pages !== undefined) {
+                        dispatch(getBookingsSuccess(items, pages, lmore));
+                    } else {
+                        dispatch(getBookingsFailure(lmore, 'Response data error'));
+                    }
+                } else {
+                    dispatch(getBookingsFailure(lmore, 'Invalid response format'));
+                }
+            }).catch((err: any) => {
+                console.error('Get bookings error:', err);
+                const errorMessage = err.response?.data?.message || err.message || 'Failed to load bookings';
+                dispatch(getBookingsFailure(lmore, errorMessage));
+            });
+        }).catch((langError: any) => {
+            console.error('Get language code error:', langError);
+            // Fallback: try without language parameter
+            axios.get(`${SiteDetails.url}wp-json/cththemes/v1/listings/user/bookings/${id}`, {
+                params: {
+                    paged: paged,
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': SiteDetails.app_key,
+                }
+            }).then((res: { data: ApiResponse & BookingData }) => {
+                const response = res.data;
+                if ('success' in response) {
+                    if (response.success && response.data) {
+                        dispatch(getBookingsSuccess(response.data, response.pages || 0, lmore));
+                    } else {
+                        dispatch(getBookingsFailure(lmore, response.message || 'Failed to load bookings'));
+                    }
+                } else if ('items' in response) {
+                    const { items, pages } = response;
+                    if (items && pages !== undefined) {
+                        dispatch(getBookingsSuccess(items, pages, lmore));
+                    } else {
+                        dispatch(getBookingsFailure(lmore, 'Response data error'));
+                    }
+                } else {
+                    dispatch(getBookingsFailure(lmore, 'Invalid response format'));
+                }
+            }).catch((err: any) => {
+                console.error('Get bookings error (fallback):', err);
+                dispatch(getBookingsFailure(lmore, err.response?.data?.message || err.message || 'Failed to load bookings'));
+            });
         });
     };
 };

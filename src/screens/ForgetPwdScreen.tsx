@@ -39,7 +39,7 @@ const ForgetPwdScreen = (props: { navigation: any }) => {
 
       const response = await axios({
         method: 'POST',
-        url: 'https://dreamhome.techlead.solutions/wp-json/cththemes/v1/listings/resetpwd',
+        url: 'https://dreamhome.com.gt/wp-json/cththemes/v1/listings/resetpwd',
         data: {
           user_login: trimmedEmail,
           cthlang: lang,

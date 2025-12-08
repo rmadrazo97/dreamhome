@@ -1,5 +1,4 @@
 import React, { useLayoutEffect } from 'react';
-import { useColorScheme } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from "react-redux";
@@ -11,8 +10,8 @@ import ForgetPwdScreen from '../screens/ForgetPwdScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 
 import { translate } from "../helpers/i18n";
-import getThemedColors from '../helpers/Theme';
 import BackButton from '../components/inners/BackButton';
+import { themedColors } from '../constants/Colors';
 
 const Stack = createStackNavigator();
 
@@ -24,7 +23,7 @@ interface BookingsStackProps {
 const BookingsStack: React.FC<BookingsStackProps> = ({ navigation, route }) => {
     const user = useSelector((state: any) => state.user);
     const { isLoggedIn } = user;
-    const colors = getThemedColors(useColorScheme());
+    const colors = useSelector((state: any) => state.apColors) || themedColors.default;
 
     useLayoutEffect(() => {
         const routeName = getFocusedRouteNameFromRoute(route) ?? (isLoggedIn ? 'Bookings' : 'SignIn');
@@ -71,15 +70,15 @@ const BookingsStack: React.FC<BookingsStackProps> = ({ navigation, route }) => {
                         options={{ headerShown: false }} 
                         initialParams={{ loggedInRoute: 'Bookings' }}
                     >
-                        {props => <SignInScreen {...props} apColors={colors} />}
+                        {props => <SignInScreen {...props} />}
                     </Stack.Screen>
                     
                     <Stack.Screen name="ForgetPwd" options={{ headerShown: false, tabBarVisible: false }}>
-                        {props => <ForgetPwdScreen {...props} apColors={colors} />}
+                        {props => <ForgetPwdScreen {...props} />}
                     </Stack.Screen>
                     
                     <Stack.Screen name="Register" options={{ headerShown: false }}>
-                        {props => <RegisterScreen {...props} apColors={colors} />}
+                        {props => <RegisterScreen {...props} />}
                     </Stack.Screen>
                 </>
             )}

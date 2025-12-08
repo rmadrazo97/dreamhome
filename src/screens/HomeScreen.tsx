@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import {
     Image,
     TextInput,
@@ -12,22 +12,26 @@ import {
     PermissionsAndroid,
     ViewStyle,
     TextStyle,
-    ImageStyle
+    ImageStyle,
+    ActivityIndicator
 } from 'react-native';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
 import Geolocation from '@react-native-community/geolocation';
 import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 
-import { filterByLoc, filterByCat, filterNearBy, getSiteDatas } from '../helpers/store';
+import { filterByLoc, filterByCat, filterNearBy, getSiteDatas, getLatestListings } from '../helpers/store';
 import { translate } from "../helpers/i18n";
 import { extractPostParams } from "../helpers/store";
 import { SearchSvg, CloseSvg, AvatarSvg, MarkerSvg } from '../components/icons/ButtonSvgIcons';
 import Search from '../components/explore/Search';
-import Categories from '../components/explore/Categories';
 import ImageBanner from '../components/explore/ImageBanner';
 import DiscoverNew from '../components/explore/DiscoverNew';
-import { ThemeColors, User, SiteData, Listing } from '../types';
+import { User, SiteData, Listing } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { themedColors } from '../constants/Colors';
+import Locations from '../components/explore/Locations';
+import LocationsCol from '../components/explore/LocationsCol';
 
 // Types
 interface SearchResult {
@@ -44,6 +48,9 @@ interface HomeScreenState {
     results: SearchResult[];
     showClear: boolean;
     scrollDir: string;
+    latestListings: Listing[];
+    loadingListings: boolean;
+    refreshing: boolean;
 }
 
 type RootStackParamList = {
@@ -56,7 +63,6 @@ type RootStackParamList = {
 
 interface HomeScreenProps {
     navigation: StackNavigationProp<RootStackParamList>;
-    apColors: ThemeColors;
     apTheme: 'light' | 'dark';
     user: User;
     site: SiteData;
@@ -73,26 +79,52 @@ interface HomeScreenProps {
 // Component
 const HomeScreen: React.FC<HomeScreenProps> = ({ 
     navigation, 
-    apColors, 
-    user, 
-    site, 
-    listings 
+    user,
 }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
+    const site = useSelector((state: any) => state.site);
+    const listings = useSelector((state: any) => state.listings);
+    
     const [state, setState] = useState<HomeScreenState>({
         data: [],
         showSearch: false,
         stext: '',
         results: [],
         showClear: false,
-        scrollDir: ''
+        scrollDir: '',
+        latestListings: [],
+        loadingListings: false,
+        refreshing: false,
     });
 
     const searchInputRef = useRef<TextInput>(null);
 
+    // Fetch listings on mount
+    useEffect(() => {
+        loadLatestListings();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Load latest listings from API
+    const loadLatestListings = useCallback(async () => {
+        try {
+            setState(prevState => ({ ...prevState, loadingListings: true }));
+            const result = await getLatestListings(16);
+            setState(prevState => ({ 
+                ...prevState, 
+                latestListings: result.items || [],
+                loadingListings: false 
+            }));
+        } catch (error) {
+            console.error('Error loading latest listings:', error);
+            setState(prevState => ({ ...prevState, loadingListings: false }));
+        }
+    }, []);
+
     // Navigation options
     React.useLayoutEffect(() => {
         navigation.setOptions({
-            header: null,
+            headerShown: false,
         });
     }, [navigation]);
 
@@ -124,18 +156,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     }, []);
 
     const onInputChange = useCallback((stext: string) => {
-        let showClear = false;
-        let results: SearchResult[] = [];
+        setState(prevState => {
+            let showClear = false;
+            let results: SearchResult[] = [];
 
-        if (stext.length > 0) {
-            showClear = true;
-            const sLText = stext.toLowerCase();
+            if (stext.length > 0) {
+                showClear = true;
+                const sLText = stext.toLowerCase();
 
-            if (site) {
-                // Search for listings
-                const { listings: siteListings } = site;
-                if (siteListings && Array.isArray(siteListings) && siteListings.length > 0) {
-                    const resultListings = siteListings.filter(
+                // Search in latest listings from API
+                if (prevState.latestListings && Array.isArray(prevState.latestListings) && prevState.latestListings.length > 0) {
+                    const resultListings = prevState.latestListings.filter(
                         lpost => lpost.title && lpost.title.toLowerCase().indexOf(sLText) !== -1
                     );
                     if (Array.isArray(resultListings) && resultListings.length > 0) {
@@ -143,55 +174,61 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                             results.push({
                                 type: 'listing',
                                 title: rtax.title,
-                                id: rtax.ID,
+                                id: rtax.ID || rtax.id,
                                 thumbnail: rtax.thumbnail,
                             });
                         });
                     }
                 }
 
+                // Fallback to site listings if API listings not available
+                if (results.length === 0 && site) {
+                    const { listings: siteListings } = site;
+                    if (siteListings && Array.isArray(siteListings) && siteListings.length > 0) {
+                        const resultListings = siteListings.filter(
+                            lpost => lpost.title && lpost.title.toLowerCase().indexOf(sLText) !== -1
+                        );
+                        if (Array.isArray(resultListings) && resultListings.length > 0) {
+                            resultListings.forEach(rtax => {
+                                results.push({
+                                    type: 'listing',
+                                    title: rtax.title,
+                                    id: rtax.ID,
+                                    thumbnail: rtax.thumbnail,
+                                });
+                            });
+                        }
+                    }
+                }
+
                 // Search for locations
-                const { locs } = site;
-                if (locs && Array.isArray(locs) && locs.length > 0) {
-                    const resultLocs = locs.filter(
-                        tax => tax.title && tax.title.toLowerCase().indexOf(sLText) !== -1
-                    );
-                    if (Array.isArray(resultLocs) && resultLocs.length > 0) {
-                        resultLocs.forEach(rtax => {
-                            results.push({
-                                type: 'loc',
-                                title: rtax.title,
-                                id: rtax.id,
+                if (site) {
+                    const { locs } = site;
+                    if (locs && Array.isArray(locs) && locs.length > 0) {
+                        const resultLocs = locs.filter(
+                            tax => tax.title && tax.title.toLowerCase().indexOf(sLText) !== -1
+                        );
+                        if (Array.isArray(resultLocs) && resultLocs.length > 0) {
+                            resultLocs.forEach(rtax => {
+                                results.push({
+                                    type: 'loc',
+                                    title: rtax.title,
+                                    id: rtax.id,
+                                });
                             });
-                        });
+                        }
                     }
                 }
 
-                // Search for categories
-                const { cats } = site;
-                if (cats && Array.isArray(cats) && cats.length > 0) {
-                    const resultCats = cats.filter(
-                        tax => tax.title && tax.title.toLowerCase().indexOf(sLText) !== -1
-                    );
-                    if (Array.isArray(resultCats) && resultCats.length > 0) {
-                        resultCats.forEach(rtax => {
-                            results.push({
-                                type: 'cat',
-                                title: rtax.title,
-                                id: rtax.id,
-                            });
-                        });
-                    }
-                }
             }
-        }
 
-        setState(prevState => ({
-            ...prevState,
-            showClear,
-            stext,
-            results
-        }));
+            return {
+                ...prevState,
+                showClear,
+                stext,
+                results
+            };
+        });
     }, [site]);
 
     const onClearText = useCallback(() => {
@@ -263,14 +300,33 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
     const onRefresh = useCallback(async () => {
         try {
-            await getSiteDatas();
+            setState(prevState => ({ ...prevState, refreshing: true }));
+            await Promise.all([
+                getSiteDatas(),
+                loadLatestListings(),
+            ]);
+            setState(prevState => ({ ...prevState, refreshing: false }));
         } catch (error) {
             console.error('Error refreshing data:', error);
+            setState(prevState => ({ ...prevState, refreshing: false }));
         }
-    }, []);
+    }, [loadLatestListings]);
 
     const { isLoggedIn, avatar } = user;
-    const { showSearch, stext, results, showClear } = state;
+    const { 
+        showSearch, 
+        stext, 
+        results, 
+        showClear, 
+        latestListings, 
+        loadingListings,
+        refreshing 
+    } = state;
+
+    // Use API latest listings if available, fallback to site listings
+    const displayListings = useMemo(() => {
+        return latestListings.length > 0 ? latestListings : (site?.listings || []);
+    }, [latestListings, site?.listings]);
 
     // Add null check for apColors after all hooks
     if (!apColors) {
@@ -288,7 +344,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     return (
         <SafeAreaConsumer>
             {insets => (
-                <View style={[styles.container, { backgroundColor: apColors?.appBg || '#FFFFFF', paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right }]}>
+                <View style={[styles.container, { backgroundColor: apColors?.appBg || '#FFFFFF', paddingTop: insets?.top || 0, paddingLeft: insets?.left || 0, paddingRight: insets?.right || 0 }]}>
                     <View style={headerSearchStyle}>
                         <TouchableOpacity onPress={openSearch} style={{ flex: 1, height: 40 }}>
                             <Search />
@@ -374,49 +430,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                         contentContainerStyle={{ paddingBottom: 20 }}
                         refreshControl={
                             <RefreshControl
-                                refreshing={listings.loading}
+                                refreshing={refreshing || listings.loading}
                                 onRefresh={onRefresh}
                                 tintColor={apColors?.appColor || '#4DB7FE'}
                             />
                         }
                     >
-                        <ImageBanner />
-                        
-                        <Categories 
-                            eleObj={{
-                                title: translate('categories'),
-                                data: site?.cats || [],
-                                show_view_all: true,
-                                viewall_text: translate('view_all')
-                            }}
-                            apColors={apColors} 
-                            onCategorySelect={(categoryId) => onClickCat({ id: parseInt(categoryId, 10) })}
-                        />
-                        
-                        {/* <CircleCats 
-                            apColors={apColors} 
-                            onClickCat={onClickCat}
-                        />
-                        
-                        <CatsSquare 
-                            apColors={apColors} 
-                            onClickCat={onClickCat}
-                        />
-                        
-                        <CatsCol 
-                            apColors={apColors} 
-                            onClickCat={onClickCat}
-                        />
-                        
-                        <Locations 
-                            apColors={apColors} 
-                            onClickLoc={onClickLoc}
-                        />
-                        
-                        <LocationsCol 
-                            apColors={apColors} 
-                            onClickLoc={onClickLoc}
-                        /> */}
                         
                         <TouchableOpacity 
                             style={[styles.nearbyButton, { backgroundColor: apColors?.appColor || '#4DB7FE' }]}
@@ -428,17 +447,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                             </Text>
                         </TouchableOpacity>
                         
-                        <DiscoverNew 
-                            apColors={apColors} 
-                            eleObj={{
-                                title: translate('discover_new'),
-                                data: site?.listings || [],
-                                show_view_all: true,
-                                viewall_text: translate('view_all')
-                            }}
-                            goToListing={goToListing}
-                        />
-                        
+                        {loadingListings ? (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator 
+                                    size="small" 
+                                    color={apColors?.appColor || '#4DB7FE'} 
+                                />
+                            </View>
+                        ) : (
+                            <DiscoverNew 
+                                navigation={navigation}
+                                apColors={apColors} 
+                                eleObj={{
+                                    title: translate('discover_new'),
+                                    data: displayListings,
+                                    show_view_all: true,
+                                    viewall_text: translate('view_all')
+                                }}
+                                goToListing={goToListing}
+                            />
+                        )}
                         {/* <DiscoverCarousel 
                             apColors={apColors} 
                             goToListing={goToListing}
@@ -509,6 +537,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginLeft: 10,
     } as TextStyle,
+    loadingContainer: {
+        paddingVertical: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    } as ViewStyle,
 });
 
 // Redux connection

@@ -14,7 +14,7 @@ import { connect } from 'react-redux';
 import { formatNumber } from '../../helpers/currency';
 import { translate } from "../../helpers/i18n";
 import { validateEmail } from "../../helpers/helpers";
-import { boldFontFamily } from "../../constants/Colors";
+import { boldFontFamily, themedColors } from "../../constants/Colors";
 import BtnFull from '../../components/ui/BtnFull';
 import BtnLarge from '../../components/ui/BtnLarge';
 import TextRegular from '../../components/ui/TextRegular';
@@ -442,6 +442,7 @@ const styles = StyleSheet.create({
 const mapStateToProps = (state: AppState) => ({
     user: state.user,
     listing: state.listings || {} as any,
+    apColors: (state as any).apColors || themedColors.default,
 });
 
 // Map your action creators to your props

@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "Уведомления",
+        bookmarks: "Закладки",
         logout: "Выйти",
         chat: "Чат",
         currency: "валюта",
         language: "язык",
+        legal: "Юридический",
         about_us: "О нас",
         help_center: "Центр помощи",
         privacy_policy: "Политика конфиденциальности",

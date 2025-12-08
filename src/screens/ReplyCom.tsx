@@ -19,7 +19,7 @@ import {
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
 import HTML from 'react-native-render-html';
 import moment from 'moment';
-import { mediumFontFamily } from '../constants/Colors';
+import { mediumFontFamily, themedColors } from '../constants/Colors';
 import { translate } from "../helpers/i18n";
 import { fomartCurrOut } from '../helpers/currency';
 import BtnLink from '../components/ui/BtnLink';

@@ -14,13 +14,14 @@ import {
   ImageStyle
 } from 'react-native';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import MapView, { Marker } from 'react-native-maps';
 import axios from 'axios';
 import moment from 'moment';
 
 import { fomartCurrOut, valid_coords } from '../helpers/currency';
 import { translate } from "../helpers/i18n";
+import { themedColors } from '../constants/Colors';
 import SiteDetails from '../constants/SiteDetails';
 import TextHeavy from '../components/ui/TextHeavy';
 import TextRegular from '../components/ui/TextRegular';
@@ -37,7 +38,7 @@ import Cats from '../components/inners/Cats';
 import LHostedBy from '../components/inners/LHostedBy';
 import Reviews from '../components/Reviews';
 import AvailabilityModal from '../components/inners/AvailabilityModal';
-import { ThemeColors, NavigationProp, Listing } from '../types';
+import { NavigationProp, Listing } from '../types';
 
 // Types
 interface ListingScreenState {
@@ -49,13 +50,13 @@ interface ListingScreenState {
 
 interface ListingScreenProps {
   navigation: NavigationProp;
-  apColors: ThemeColors;
   user: any;
   site: any;
   listing: any;
 }
 
-const ListingScreen: React.FC<ListingScreenProps> = ({ navigation, apColors, listing: listingFromStore }) => {
+const ListingScreen: React.FC<ListingScreenProps> = ({ navigation, listing: listingFromStore }) => {
+  const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
   const [state, setState] = useState<ListingScreenState>({
     listing: null,
     loading: true,
@@ -513,7 +514,6 @@ const styles = StyleSheet.create({
 
 // Redux connection
 const mapStateToProps = (state: any) => ({
-    apColors: state.apColors,
     user: state.user,
     site: state.site,
     listing: state.listing,

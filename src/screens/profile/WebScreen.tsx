@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { connect } from 'react-redux';
 import { ThemeColors, NavigationProp, RouteProp } from '../types';
+import { themedColors } from '../../constants/Colors';
 
 interface WebScreenProps {
     navigation: NavigationProp;
@@ -74,6 +76,10 @@ const styles = StyleSheet.create({
     },
 });
 
-export default WebScreen;
+const mapStateToProps = (state: any) => ({
+    apColors: state.apColors || themedColors.default,
+});
+
+export default connect(mapStateToProps)(WebScreen);
 
 

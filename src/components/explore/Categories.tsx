@@ -1,19 +1,16 @@
 import React, { useCallback } from 'react';
 import {
     ScrollView,
-    Text,
     View,
     Image,
     TouchableOpacity,
     StyleSheet,
-    useColorScheme,
     ViewStyle,
     TextStyle,
     ImageStyle
 } from 'react-native';
 import NavigationService from '../../helpers/NavigationService';
 import { filterByCat } from '../../helpers/store';
-import getThemedColors from '../../helpers/Theme';
 import { translate } from "../../helpers/i18n";
 import SectionTitle from './SectionTitle';
 import TextRegular from '../ui/TextRegular';
@@ -46,6 +43,12 @@ const Card: React.FC<CardProps> = ({ post, onPress, apColors, isSelected = false
         onPress(post);
     }, [post, onPress]);
 
+    // Handle both API format (title, thumbnail) and legacy format (name, image)
+    const categoryName = post.title || post.name || '';
+    const categoryImage = post.thumbnail || post.image || '';
+    const categoryCount = post.count || 0;
+    const displayChar = categoryName ? categoryName.charAt(0).toUpperCase() : '?';
+
     return (
         <TouchableOpacity
             style={[styles.card, { 
@@ -53,32 +56,38 @@ const Card: React.FC<CardProps> = ({ post, onPress, apColors, isSelected = false
                 borderColor: isSelected ? apColors.appColor : apColors.separator
             }]}
             onPress={handlePress}
+            activeOpacity={0.7}
         >
             <View style={styles.cardImageContainer}>
-                {post.image ? (
+                {categoryImage ? (
                     <Image
-                        source={{ uri: post.image }}
+                        source={{ uri: categoryImage }}
                         style={styles.cardImage}
                         resizeMode="cover"
                     />
                 ) : (
                     <View style={[styles.cardImagePlaceholder, { backgroundColor: apColors.separator }]}>
                         <TextHeavy style={[styles.cardImageText, { color: apColors.addressText }]}>
-                            {post.name.charAt(0).toUpperCase()}
+                            {displayChar}
                         </TextHeavy>
                     </View>
                 )}
             </View>
             
             <View style={styles.cardContent}>
-                <TextHeavy style={[styles.cardTitle, { 
-                    color: isSelected ? apColors.appColor : apColors.hText 
-                }]}>
-                    {post.name}
+                <TextHeavy 
+                    style={[styles.cardTitle, { 
+                        color: isSelected ? apColors.appColor : apColors.hText 
+                    }]}
+                    numberOfLines={2}
+                >
+                    {categoryName}
                 </TextHeavy>
-                <TextRegular style={[styles.cardSubtitle, { color: apColors.addressText }]}>
-                    {post.count} {translate('listings')}
-                </TextRegular>
+                {categoryCount > 0 && (
+                    <TextRegular style={[styles.cardSubtitle, { color: apColors.addressText }]}>
+                        {categoryCount} {translate('listings')}
+                    </TextRegular>
+                )}
             </View>
         </TouchableOpacity>
     );
@@ -103,7 +112,7 @@ const Categories: React.FC<CategoriesProps> = ({
 
     const handleCategoryPress = useCallback((category: Category) => {
         if (onCategorySelect) {
-            onCategorySelect(category.id);
+            onCategorySelect(String(category.id));
         } else {
             goToArchive(category);
         }
@@ -113,15 +122,18 @@ const Categories: React.FC<CategoriesProps> = ({
         NavigationService.navigate('Categories');
     }, []);
 
-    const renderCard = useCallback((post: Category, idx: number) => (
-        <Card 
-            key={idx} 
-            post={post} 
-            onPress={handleCategoryPress}
-            apColors={apColors}
-            isSelected={selectedCategory === post.id}
-        />
-    ), [handleCategoryPress, apColors, selectedCategory]);
+    const renderCard = useCallback((post: Category, idx: number) => {
+        const postId = post.id ? String(post.id) : '';
+        return (
+            <Card 
+                key={post.id || idx} 
+                post={post} 
+                onPress={handleCategoryPress}
+                apColors={apColors}
+                isSelected={selectedCategory === postId}
+            />
+        );
+    }, [handleCategoryPress, apColors, selectedCategory]);
 
     let posts: React.ReactNode[] = [];
     if (data && Array.isArray(data) && data.length > 0) {
@@ -136,6 +148,7 @@ const Categories: React.FC<CategoriesProps> = ({
                 showAll={show_view_all} 
                 allText={viewall_text}  
                 onViewAllPress={handleViewAllPress}
+                apColors={apColors}
             />
             <ScrollView 
                 horizontal={true} 

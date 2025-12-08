@@ -26,6 +26,7 @@ interface DiscoverNewProps {
         viewall_text: string;
     };
     goToListing: (item: Listing) => void;
+    navigation: any;
 }
 
 interface CardProps {
@@ -46,12 +47,13 @@ const Card: React.FC<CardProps> = ({ cIndex, viewableItems, post, onPress, apCol
     }, [loaded, cIndex, viewableItems]);
 
     const { thumbnail, title, address, rating } = post;
-
+    console.log("hello post is here   ", post.thumbnail);
+    console.log("hello post is here   ", loaded && thumbnail && thumbnail !== '');
     return (
         <View style={styles.card}>
             <TouchableOpacity onPress={onPress} style={styles.cardTouchable}>
                 <View style={styles.cardThumbnail}>
-                    {loaded && thumbnail && thumbnail !== '' && (
+                    {thumbnail && thumbnail !== '' && (
                         <Image source={{ uri: thumbnail }} style={styles.cardImage} />
                     )}
                 </View>
@@ -76,7 +78,7 @@ const Card: React.FC<CardProps> = ({ cIndex, viewableItems, post, onPress, apCol
     );
 };
 
-const DiscoverNew: React.FC<DiscoverNewProps> = ({ apColors, eleObj, goToListing }) => {
+const DiscoverNew: React.FC<DiscoverNewProps> = ({ apColors, eleObj, goToListing, navigation }) => {
     const [viewableItems, setViewableItems] = useState<number[]>([]);
     const viewabilityConfig = useRef({
         waitForInteraction: true,
@@ -93,7 +95,7 @@ const DiscoverNew: React.FC<DiscoverNewProps> = ({ apColors, eleObj, goToListing
 
     const handleViewAll = useCallback(() => {
         filterReset();
-        NavigationService.navigate('Archive', {});
+        navigation.navigate('Archive', {});
     }, []);
 
     const { title, data, show_view_all, viewall_text } = eleObj;
@@ -105,7 +107,8 @@ const DiscoverNew: React.FC<DiscoverNewProps> = ({ apColors, eleObj, goToListing
                 showAll: show_view_all,
                 allText: viewall_text,
                 onViewAllPress: handleViewAll,
-                style: { marginRight: 15 }
+                style: { marginRight: 15 },
+                apColors: apColors
             })}
             <FlatList
                 data={data}
@@ -119,10 +122,13 @@ const DiscoverNew: React.FC<DiscoverNewProps> = ({ apColors, eleObj, goToListing
                     />
                 )}
                 keyExtractor={item => String(item.id)}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
+                numColumns={2}
+                columnWrapperStyle={styles.row}
+                showsVerticalScrollIndicator={false}
                 viewabilityConfig={viewabilityConfig.current}
                 onViewableItemsChanged={onViewableItemsChanged}
+                contentContainerStyle={styles.listContent}
+                scrollEnabled={false}
             />
         </View>
     );
@@ -132,39 +138,46 @@ const styles = StyleSheet.create({
     container: {
         minHeight: 150,
         paddingTop: 10,
-        paddingLeft: 15,
+        paddingHorizontal: 15,
         marginTop: 20,
     } as ViewStyle,
+    listContent: {
+        paddingBottom: 20,
+    } as ViewStyle,
+    row: {
+        justifyContent: 'space-between',
+        marginBottom: 20,
+    } as ViewStyle,
     card: {
-        width: 200,
-        marginRight: 17,
+        width: '48%',
     } as ViewStyle,
     cardTouchable: {
         flex: 1,
     } as ViewStyle,
     cardThumbnail: {
-        width: 200,
-        height: 250,
+        width: '100%',
+        height: 200,
         borderRadius: 8,
         overflow: 'hidden',
-        marginBottom: 15,
+        marginBottom: 12,
         backgroundColor: '#FFF',
     } as ViewStyle,
     cardImage: {
-        flex: 1,
+        width: '100%',
+        height: '100%',
     } as ImageStyle,
     cardDetails: {
         // Empty for now
     } as ViewStyle,
     cardTitle: {
-        fontSize: 17,
+        fontSize: 16,
         textAlign: 'left',
-        lineHeight: 22,
+        lineHeight: 20,
     } as TextStyle,
     lAddress: {
         fontSize: 13,
         lineHeight: 18,
-        marginTop: 2,
+        marginTop: 4,
     } as TextStyle,
 });
 

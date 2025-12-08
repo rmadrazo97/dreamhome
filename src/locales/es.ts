@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "Notificaciones",
+        bookmarks: "Marcadores",
         logout: "Cerrar sesión",
         chat: "Chat",
         currency: "Moneda",
         language: "Idioma",
+        legal: "Legal",
         about_us: "Sobre nosotros",
         help_center: "Centro de ayuda",
         privacy_policy: "Política de privacidad",

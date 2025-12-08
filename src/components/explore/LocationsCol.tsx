@@ -57,6 +57,7 @@ const LocationsCol: React.FC<LocationsColProps> = ({ apColors, eleObj, style }) 
                 showAll={show_view_all} 
                 allText={viewall_text} 
                 onViewAllPress={handleViewAll}
+                apColors={apColors}
             />
             <View style={styles.locColWrap}>
                 {renderPosts()}

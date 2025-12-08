@@ -1,8 +1,8 @@
 export default {
     app_key: 'MTVkemkxcG9jOGptM3ZpZDJiMnlmaQXXX',
 
-    url: 'https://dreamhome.techlead.solutions/',
-    terms_page: 'https://dreamhome.techlead.solutions/',
+    url: 'https://dreamhome.com.gt/',
+    terms_page: 'https://dreamhome.com.gt/',
 }
 
 export const defaultLanguage = {

@@ -1,254 +1,307 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ThemeColors, NavigationProp } from '../types';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
     View,
     Image,
     FlatList,
     TouchableOpacity,
-    ScrollView, 
     ActivityIndicator,
-    StyleSheet 
+    StyleSheet,
+    ViewStyle,
+    TextStyle,
+    ImageStyle
 } from 'react-native';
+import { connect } from 'react-redux';
 
-import SignInScreen from './bookings/SignIn';
-
-
-import {translate} from "../helpers/i18n";
-import {fomartCurrOut,formatFloat,formatInt} from '../helpers/currency';
-import {extractPostParams,isUserLoggedIn}  from "../helpers/store";
-
-import LList from '../components/inners/LList';
-
+import { translate } from "../helpers/i18n";
+import { fomartCurrOut } from '../helpers/currency';
+import { ThemeColors, NavigationProp, AppState } from '../types';
+import { themedColors } from '../constants/Colors';
 
 import TextRegular from '../components/ui/TextRegular';
 import TextMedium from '../components/ui/TextMedium';
 import TextHeavy from '../components/ui/TextHeavy';
-
 import Loader from '../components/Loader';
 
 import { getBookings } from '../actions/user';
-import { connect } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-class BookingsScreen extends React.Component{
-    constructor(props){
-        super(props)
-        const [state, setState] = useState({ paged: 1 })
-
-        
-    }
-    useEffect(() => {
-
-        const {isLoggedIn, ID
-}, []); = this.props.user
-        if( isLoggedIn ){
-            this.props.getBookings( ID )
-        }
-    }
-    componentDidUpdate(prevProps) {
-        // Typical usage (don't forget to compare props):
-        const {isLoggedIn, ID} = this.props.user
-        if( isLoggedIn && ID !== prevProps.user.ID ){
-            setState({paged: 1})
-            this.props.getBookings( ID )
-        }
-    }
-    onEndReached(info){
-        const {ID,bkspages,lmore} = this.props.user
-        if( lmore === false && bkspages > 0 ){
-            let {paged} = this.state
-            this.props.getBookings( ID, ++paged, true )
-            setState({paged})
-        }
-    }
-    onRefresh(){
-        this.props.getBookings(this.props.user.ID)
-        setState({paged: 1})
-    }
-    goToSingle(p){
-        let params = {id: p.ID}
-        params.backRoute = 'Bookings';
-        this.props.navigation.navigate('SBooking', params );
-    }
-    return (
-
-        const _self = this
-        const {apColors} = _self.props;
-        const {isLoggedIn, bookings, loading, lmore, bkspages} = _self.props.user
-        // let bookmarksPosts = []
-        // if( Array.isArray(bookings) && bookings.length > 0 ){
-        //     const {listings} = _self.props.site;
-        //     bookings.forEach(bm => {
-        //         // const bmPost = listings.find( lpost => lpost.ID == bm )
-        //         // if( null != bmPost ) 
-
-        //         bookmarksPosts.push( bm )
-        //     });
-        // }
-        
-        return(
-            <View style={[styles.container,{backgroundColor: apColors.secondBg,}]}>
-                
-                { 1 == 2 && loading === true && <Loader loading={true}/> }
-                <FlatList
-
-                    data={bookings}
-                    renderItem={({ item, index }) => (
-                        <Card id={item.ID} post={item} onPress={()=>_self.goToSingle(item)} apColors={apColors}/>
-                    )}
-                    keyExtractor={item => String(item.ID)}
-                    // extraData={selected}
-                    style={styles.flatList}
-                    // horizontal={true}
-                    // showsHorizontalScrollIndicator={false}
-                    // viewabilityConfig={_self.viewabilityConfig}
-                    // onViewableItemsChanged={_self.onViewableItemsChanged}
-                    onRefresh={()=>_self.onRefresh()}
-                    refreshing={loading}
-
-                    onEndReached={(info)=>this.onEndReached(info)}
-                    onEndReachedThreshold={0.1}
-
-                    ListEmptyComponent={()=><View style={styles.listEmpty}><TextRegular style={{color: apColors.lMoreText,fontSize:15,textAlign:'center'
-);
-}>{ loading ? translate('bookings','loading') : translate('bookings','no_results') }</TextRegular></View>}
-                    ListFooterComponent={()=><View style={styles.listFooter}>{lmore && <ActivityIndicator animating={true}/>}{ bookings.length > 0 && bkspages == 0 && <TextRegular style={{color: apColors.lMoreText,fontSize:15,textAlign:'center'}}>{translate('bookings','no_more')}</TextRegular>}</View>}
-                />
-            </View>
-        )
-    }
+// Types
+interface Booking {
+    ID: number;
+    ltitle: string;
+    thumbnail?: string;
+    address?: string;
+    total: number;
+    status: string;
 }
 
-//Map the redux state to your props.
-const mapStateToProps = state => ({
-    user: state.user,
-    site: state.site,
-})
-
-//Map your action creators to your props.
-const mapDispatchToProps = {
-    getBookings
+interface BookingsScreenProps {
+    navigation: NavigationProp;
+    apColors: ThemeColors;
+    user: {
+        isLoggedIn: boolean;
+        ID?: number | string;
+        bookings: Booking[];
+        loading: boolean;
+        lmore: boolean;
+        bkspages: number;
+        [key: string]: any;
+    };
+    site: any;
+    getBookings: (id: string | number, paged?: number, lmore?: boolean) => void;
 }
 
-//export your list as a default export 
-export default connect(mapStateToProps, mapDispatchToProps)(BookingsScreen);
+interface CardProps {
+    id: number;
+    post: Booking;
+    onPress: () => void;
+    apColors: ThemeColors;
+}
 
-
-function Card(props: any): any {
-    const {apColors} = props;
-    const {ltitle,thumbnail,address,total, status} = props.post;
+// Card Component
+const Card: React.FC<CardProps> = ({ post, onPress, apColors }) => {
+    const { ltitle, thumbnail, address, total, status } = post;
+    
     return (
-        <View style={[styles.cardWrap,{backgroundColor: apColors.appBg,borderColor: apColors.separator,}]}>
-            <TouchableOpacity onPress={ props.onPress } style={styles.cardInner}>
+        <View style={[styles.cardWrap, {
+            backgroundColor: apColors.appBg,
+            borderColor: apColors.separator,
+        }]}>
+            <TouchableOpacity onPress={onPress} style={styles.cardInner}>
                 <View style={styles.bkListingWrap}>
-                    { null != thumbnail && '' != thumbnail && <Image source={{uri:thumbnail}} style={[styles.cardImage,{borderColor: apColors.separator,}]}/> }
+                    {thumbnail && thumbnail !== '' && (
+                        <Image 
+                            source={{ uri: thumbnail }} 
+                            style={[styles.cardImage, { borderColor: apColors.separator }]} 
+                        />
+                    )}
                     <View style={styles.bkListingRight}>
                         <TextMedium style={styles.lTitle}>{ltitle}</TextMedium>
-                        {null != address && address !== '' && <TextRegular style={[styles.lAddress,{color: apColors.addressText,}]}>{address}</TextRegular>}
+                        {address && address !== '' && (
+                            <TextRegular style={[styles.lAddress, { color: apColors.addressText }]}>
+                                {address}
+                            </TextRegular>
+                        )}
                     </View>
                 </View>
                 
-                <View style={[styles.bkTotal,{borderTopColor: apColors.separator,}]}>
-                    
-                    <TextRegular style={styles.totalText}>{translate('bookings','total')}</TextRegular>
-
-                    <TextHeavy style={[styles.totalAmount,{color: apColors.appColor,}]}>{fomartCurrOut(total)}</TextHeavy>
-                    
-                    
-                    
+                <View style={[styles.bkTotal, { borderTopColor: apColors.separator }]}>
+                    <TextRegular style={styles.totalText}>
+                        {translate('bookings', 'total')}
+                    </TextRegular>
+                    <TextHeavy style={[styles.totalAmount, { color: apColors.appColor }]}>
+                        {fomartCurrOut(total)}
+                    </TextHeavy>
                 </View>
-                <View style={[styles.bkTotal,{borderTopColor: apColors.separator,}]}>
-                    <TextRegular style={styles.totalText}>{translate('bookings','status')}</TextRegular>
-                    <TextHeavy style={styles.totalText}>{translate('bookings',status)}</TextHeavy>
+                
+                <View style={[styles.bkTotal, { borderTopColor: apColors.separator }]}>
+                    <TextRegular style={styles.totalText}>
+                        {translate('bookings', 'status')}
+                    </TextRegular>
+                    <TextHeavy style={styles.totalText}>
+                        {translate('bookings', status)}
+                    </TextHeavy>
                 </View>
             </TouchableOpacity>
         </View>
-    )
-}
+    );
+};
 
+// Main Component
+const BookingsScreen: React.FC<BookingsScreenProps> = ({ 
+    navigation, 
+    apColors, 
+    user, 
+    getBookings 
+}) => {
+    const colors = apColors || themedColors.default;
+    const [paged, setPaged] = useState(1);
+    
+    const { isLoggedIn, ID, bookings, loading, lmore, bkspages } = user;
+
+    // Initial load and when user logs in
+    useEffect(() => {
+        if (isLoggedIn && ID) {
+            getBookings(ID);
+            setPaged(1);
+        }
+    }, [isLoggedIn, ID, getBookings]);
+
+    // Handle pagination when reaching end of list
+    const handleEndReached = useCallback((_info: { distanceFromEnd: number }) => {
+        if (ID && lmore === false && bkspages > 0) {
+            const nextPage = paged + 1;
+            getBookings(ID, nextPage, true);
+            setPaged(nextPage);
+        }
+    }, [ID, lmore, bkspages, paged, getBookings]);
+
+    // Handle pull to refresh
+    const handleRefresh = useCallback(() => {
+        if (ID) {
+            getBookings(ID);
+            setPaged(1);
+        }
+    }, [ID, getBookings]);
+
+    // Navigate to single booking
+    const goToSingle = useCallback((booking: Booking) => {
+        const params = {
+            id: booking.ID,
+            backRoute: 'Bookings',
+        };
+        (navigation as any).navigate('SBooking', params);
+    }, [navigation]);
+
+    // Memoized render item
+    const renderItem = useCallback(({ item }: { item: Booking }) => (
+        <Card 
+            id={item.ID} 
+            post={item} 
+            onPress={() => goToSingle(item)} 
+            apColors={colors}
+        />
+    ), [goToSingle, colors]);
+
+    // Memoized key extractor
+    const keyExtractor = useCallback((item: Booking) => String(item.ID), []);
+
+    // Memoized empty component
+    const listEmptyComponent = useMemo(() => (
+        <View style={styles.listEmpty}>
+            <TextRegular style={[styles.emptyText, { color: colors.lMoreText }]}>
+                {loading ? translate('bookings', 'loading') : translate('bookings', 'no_results')}
+            </TextRegular>
+        </View>
+    ), [loading, colors.lMoreText]);
+
+    // Memoized footer component
+    const listFooterComponent = useMemo(() => (
+        <View style={styles.listFooter}>
+            {lmore && <ActivityIndicator animating={true} />}
+            {bookings.length > 0 && bkspages === 0 && (
+                <TextRegular style={[styles.footerText, { color: colors.lMoreText }]}>
+                    {translate('bookings', 'no_more')}
+                </TextRegular>
+            )}
+        </View>
+    ), [lmore, bookings.length, bkspages, colors.lMoreText]);
+
+    return (
+        <SafeAreaView edges={['top']} style={[styles.container, { backgroundColor: colors.secondBg }]}>
+            {loading && <Loader loading={true} />}
+            <FlatList
+                data={bookings}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                style={styles.flatList}
+                onRefresh={handleRefresh}
+                refreshing={loading}
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.1}
+                ListEmptyComponent={listEmptyComponent}
+                ListFooterComponent={listFooterComponent}
+                showsVerticalScrollIndicator={false}
+            />
+        </SafeAreaView>
+    );
+};
+
+// Redux connection
+const mapStateToProps = (state: AppState) => ({
+    user: {
+        ...state.user,
+        bookings: (state.user as any).bookings || [],
+        loading: (state.user as any).loading || false,
+        lmore: (state.user as any).lmore || false,
+        bkspages: (state.user as any).bkspages || 0,
+    },
+    site: state.site,
+    apColors: (state as any).apColors || themedColors.default,
+});
+
+const mapDispatchToProps = {
+    getBookings
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(BookingsScreen);
+
+// Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // paddingTop: 15,
-        
-    },
+    } as ViewStyle,
     flatList: {
         paddingTop: 15,
-    },
+    } as ViewStyle,
     cardWrap: {
-        
         paddingHorizontal: 15,
         paddingVertical: 20,
         marginBottom: 10,
-
         borderTopWidth: 1,
         borderBottomWidth: 1,
-        
-    },
+    } as ViewStyle,
     cardInner: {
         // flexDirection: 'row',
-    },
-    // listing
+    } as ViewStyle,
     bkListingWrap: {
         flexDirection: 'row',
-    },
+    } as ViewStyle,
     bkListingRight: {
         flex: 1,
-    },
+    } as ViewStyle,
     lTitle: {
         fontSize: 15,
         lineHeight: 20,
-    },
+    } as TextStyle,
     cardImage: {
-        // minHeight: 100,
-        // borderRadius: 5, 
-        // overflow: 'hidden',
-        
         marginRight: 10,
         width: 60,
         height: 60,
         borderWidth: 1,
-        
-    },
+    } as ImageStyle,
     bkTotal: {
         borderTopWidth: 0.5,
-        
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 10,
         paddingTop: 10,
-
-        // backgroundColor: 'red',
-    },
+    } as ViewStyle,
     totalText: {
         fontSize: 17,
         lineHeight: 22,
-    },
+    } as TextStyle,
     totalAmount: {
         fontSize: 17,
         lineHeight: 22,
-        
-    },
+    } as TextStyle,
     cardTitle: {
         fontSize: 20,
         lineHeight: 24,
         marginRight: 25,
-        // marginBottom: 10
-    },
+    } as TextStyle,
     bookmarkIcon: {
         position: 'absolute',
         top: -2,
         right: 0,
-    },
+    } as ViewStyle,
     lAddress: {
         fontSize: 11,
-        
         lineHeight: 15,
         marginTop: 2,
-    },
+    } as TextStyle,
     listEmpty: {
         paddingVertical: 20,
-    },
+    } as ViewStyle,
     listFooter: {
         paddingVertical: 20,
-    },
+    } as ViewStyle,
+    emptyText: {
+        fontSize: 15,
+        textAlign: 'center',
+    } as TextStyle,
+    footerText: {
+        fontSize: 15,
+        textAlign: 'center',
+    } as TextStyle,
 });

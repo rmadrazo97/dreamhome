@@ -45,6 +45,7 @@ import {applyFilters} from '../actions/filter';
 
 import {filterState} from '../reducers/initialState';
 import { ThemeColors, NavigationProp } from '../types';
+import { themedColors } from '../constants/Colors';
 
 // Types
 interface FilterState {
@@ -436,7 +437,7 @@ const FilterScreen: React.FC<FilterScreenProps> = ({
 const mapStateToProps = (state: any) => ({
     site: state.site,
     filter: state.filter,
-    apColors: state.apColors,
+    apColors: state.apColors || themedColors.default,
 });
 
 const mapDispatchToProps = {

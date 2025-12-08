@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "Thông báo",
+        bookmarks: "Dấu trang",
         logout: "Đăng xuất",
         chat: "Trò chuyện",
         currency: "Tiền tệ",
         language: "Ngôn ngữ",
+        legal: "Pháp lý",
         about_us: "Về chúng tôi",
         help_center: "Trung tâm trợ giúp",
         privacy_policy: "Chính sách bảo mật",

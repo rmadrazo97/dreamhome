@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "အသိပေးချက်များ",
+        bookmarks: "Bookmarks",
         logout: "ထွက်ပေါက်",
         chat: "စကားဝှက်",
         currency: "ငွေကြေး",
         language: "ဘာသာစကား",
+        legal: "Legal",
         about_us: "ကိုယ်တို့အကြောင်း",
         help_center: "အကူအညီစင်တာ",
         privacy_policy: "ကိုယ်ရေးအချက်အလက်မူဝါဒ",
@@ -190,7 +192,7 @@ export default {
     currency: {
         title: "Curses",
         apply: "ပြောင်းလဲခြင်း",
-        no_currency: "ဒီ site မှာ currecy မရှိပါ",
+        no_currency: "ဒီ site မှာ currency မရှိပါ",
         changed: "ငွေကြေးပြောင်းလဲခဲ့သည်",
     },
     bookmarks: {

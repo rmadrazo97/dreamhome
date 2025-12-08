@@ -10,6 +10,7 @@ import {
 import { translate } from "../../helpers/i18n";
 import TextHeavy from '../ui/TextHeavy';
 import getThemedColors from '../../helpers/Theme';
+import { ThemeColors } from '../../types';
 
 interface SectionTitleProps {
     title?: string;
@@ -17,6 +18,7 @@ interface SectionTitleProps {
     allText?: string;
     onViewAllPress?: () => void;
     style?: ViewStyle;
+    apColors?: ThemeColors;
 }
 
 const SectionTitle: React.FC<SectionTitleProps> = ({ 
@@ -24,9 +26,11 @@ const SectionTitle: React.FC<SectionTitleProps> = ({
     showAll, 
     allText, 
     onViewAllPress, 
-    style 
+    style,
+    apColors
 }) => {
-    const colors = getThemedColors(useColorScheme());
+    // Use apColors if provided, otherwise fall back to getThemedColors
+    const colors = apColors || getThemedColors(useColorScheme());
     
     return (
         <View style={[styles.container, style]}>

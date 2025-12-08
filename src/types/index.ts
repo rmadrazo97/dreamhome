@@ -104,12 +104,17 @@ export interface Listing {
 
 export interface Category {
   id: number;
-  name: string;
-  title?: string; // For backward compatibility
-  color: string;
-  icon: string;
+  name?: string; // For backward compatibility
+  title?: string; // API uses 'title'
+  color?: string;
+  icon?: string;
   count?: number;
-  thumbnail?: string;
+  thumbnail?: string; // API uses 'thumbnail'
+  image?: string; // For backward compatibility
+  imgicon?: boolean;
+  description?: string;
+  parent?: number;
+  taxonomy?: string;
 }
 
 export interface Location {

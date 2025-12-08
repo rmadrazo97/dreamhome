@@ -7,10 +7,11 @@ import {
     StyleSheet,
     ActivityIndicator,
 } from 'react-native';
-import { SafeAreaConsumer } from 'react-native-safe-area-context';
+import { SafeAreaConsumer, SafeAreaView } from 'react-native-safe-area-context';
 
 import NavigationService from '../../helpers/NavigationService';
 import { translate } from "../../helpers/i18n";
+import { themedColors } from "../../constants/Colors";
 import { getCurrencyAttrs, changeAppCurrency } from "../../helpers/store";
 import { getCurrencyAsync, setCurrencyAsync } from "../../helpers/user";
 
@@ -99,17 +100,7 @@ const Currency: React.FC<CurrencyProps> = ({ navigation, apColors, site, currenc
     });
 
     return (
-        <SafeAreaConsumer>
-            {insets => (
-                <View style={[
-                    styles.container,
-                    {
-                        backgroundColor: apColors.appBg,
-                        paddingLeft: insets.left,
-                        paddingRight: insets.right,
-                        paddingBottom: insets.bottom
-                    }
-                ]}>
+            <SafeAreaView style={[styles.container, { backgroundColor: apColors.appBg }]}>
                     {submitting && <Loader loading={true} />}
 
                     <FlatList
@@ -136,9 +127,7 @@ const Currency: React.FC<CurrencyProps> = ({ navigation, apColors, site, currenc
                             </View>
                         )}
                     />
-                </View>
-            )}
-        </SafeAreaConsumer>
+            </SafeAreaView>
     );
 };
 
@@ -146,6 +135,7 @@ const Currency: React.FC<CurrencyProps> = ({ navigation, apColors, site, currenc
 const mapStateToProps = (state: any) => ({
     site: state.site,
     currency: state.currency,
+    apColors: state.apColors || themedColors.default,
 });
 
 const mapDispatchToProps = {};

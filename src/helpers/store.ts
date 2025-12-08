@@ -85,11 +85,11 @@ export const getSiteDatas = async (): Promise<void> => {
 export const getCurrencyAttrs = async (curr?: string): Promise<void> => {
     try {
         if (!curr) curr = await getCurrencyAsync();
-        
+        console.log('curr', curr);
         const lang = await getAppLangCode();
-        
+        console.log('lang', lang);
         store.dispatch({ type: GET_CURRENCY_ATTRS });
-
+        console.log('GET_CURRENCY_ATTRS');
         const res = await axios({
             method: 'GET',
             url: `${SiteDetails.url}wp-json/cththemes/v1/listings/currency`,
@@ -101,7 +101,7 @@ export const getCurrencyAttrs = async (curr?: string): Promise<void> => {
             console.log('Currency attrs error:', err);
             return null;
         });
-        
+        console.log('res', res);
         if (res?.data) {
             store.dispatch({ type: GET_CURRENCY_ATTRS_SUCCESS, payload: res.data });
         } else {
@@ -227,6 +227,77 @@ export const checkBkPayment = (id: number): void => {
     }).catch(err => {
         console.log('Booking status error:', err);
     });
+};
+
+// Fetch categories from API
+export const getCategories = async (): Promise<any[]> => {
+    try {
+        const lang = await getAppLangCode();
+        const res = await axios({
+            method: 'GET',
+            url: `${SiteDetails.url}wp-json/cththemes/v1/listings/categories`,
+            params: {
+                cthlang: lang,
+            },
+        }).catch(err => {
+            console.log('Categories fetch error:', err);
+            return null;
+        });
+
+        if (res?.data) {
+            const categories = Array.isArray(res.data) ? res.data : (res.data.items || res.data.data || []);
+            // Ensure categories have the required fields
+            return categories.map((cat: any) => ({
+                id: cat.id,
+                title: cat.title || cat.name || '',
+                name: cat.name || cat.title || '', // For backward compatibility
+                thumbnail: cat.thumbnail || cat.image || '',
+                image: cat.image || cat.thumbnail || '', // For backward compatibility
+                count: cat.count || 0,
+                icon: cat.icon || '',
+                color: cat.color || '',
+                imgicon: cat.imgicon || false,
+                description: cat.description || '',
+                parent: cat.parent || 0,
+                taxonomy: cat.taxonomy || 'listing_cat',
+            }));
+        }
+        return [];
+    } catch (error) {
+        console.error('Get categories error:', error);
+        return [];
+    }
+};
+
+// Fetch latest listings from API
+export const getLatestListings = async (postsPerPage: number = 16): Promise<{ items: any[]; pages: number }> => {
+    try {
+        const lang = await getAppLangCode();
+        const res = await axios({
+            method: 'GET',
+            url: `${SiteDetails.url}wp-json/cththemes/v1/listings/latest`,
+            params: {
+                cthlang: lang,
+                posts_per_page: postsPerPage,
+                order: 'DESC',
+                orderby: 'date',
+            },
+        }).catch(err => {
+            console.log('Latest listings fetch error:', err);
+            return null;
+        });
+        console.log('res latest listings', res);
+        if (res?.data) {
+            return {
+                items: res.data || [],
+                pages: 1,
+            };
+        }
+        return { items: [], pages: 0 };
+    } catch (error) {
+        console.error('Get latest listings error:', error);
+        return { items: [], pages: 0 };
+    }
 };
 
 export const getAppLangCode = async (): Promise<string> => {

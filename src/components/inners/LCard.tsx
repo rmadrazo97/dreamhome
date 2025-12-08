@@ -32,9 +32,16 @@ const LCard: React.FC<LCardProps> = ({ post, onPress, bookmarks = [], style }) =
     
     const { ID, thumbnail, title, address, price, rating, distance } = post;
     
+    // Ensure all text values are strings
+    const safeTitle = title && typeof title === 'string' ? title : '';
+    const safeAddress = address && typeof address === 'string' ? String(address) : '';
+    const safeDistance = distance ? String(distance) : '';
+    const safePrice = price ? String(price) : '';
+    
     const isBookmarked = useMemo(() => {
-        return bookmarks && Array.isArray(bookmarks) && bookmarks.includes(ID);
-    }, [bookmarks, ID]);
+        const itemId = ID || (post as any).id;
+        return bookmarks && Array.isArray(bookmarks) && itemId && bookmarks.includes(itemId);
+    }, [bookmarks, ID, post]);
 
     const handlePress = useCallback(() => {
         onPress(post);
@@ -58,40 +65,47 @@ const LCard: React.FC<LCardProps> = ({ post, onPress, bookmarks = [], style }) =
                 {isBookmarked && <BookmarkSvg style={styles.bookmarkIcon} />}
                 
                 <View style={styles.cardDetails}>
-                    <TextHeavy style={styles.cardTitle}>{title}</TextHeavy>
+                    {safeTitle !== '' && (
+                        <TextHeavy style={styles.cardTitle}>{safeTitle}</TextHeavy>
+                    )}
                     
-                    {address && address !== '' && (
+                    {safeAddress !== '' && (
                         <TextRegular style={[styles.lAddress, { color: colors.addressText }]}>
-                            {address}
+                            {safeAddress}
                         </TextRegular>
                     )}
                     
-                    {distance && distance !== '' && (
+                    {safeDistance !== '' && (
                         <View style={styles.farWrap}>
                             <TextMedium style={[styles.farVal, { color: colors.pText }]}>
-                                {formatNumber(distance)}
+                                {(() => {
+                                    const num = formatNumber(parseFloat(safeDistance));
+                                    return isNaN(num) ? '' : String(num);
+                                })()}
                             </TextMedium>
                             <TextRegular style={[styles.farKM, { color: colors.addressText }]}>
-                                {translate('km', '', {})}
+                                {translate('km', '', {}) || ''}
                             </TextRegular>
                         </View>
                     )}
 
-                    <Reviews 
-                        rating={rating} 
-                        showNum={true} 
-                        style={{ marginTop: 5 }} 
-                        oneStar={true} 
-                        fSize={15}
-                    />
+                    {rating && (
+                        <Reviews 
+                            rating={typeof rating === 'object' && rating !== null ? rating : { rating: typeof rating === 'number' ? rating : 0, base: 5 }} 
+                            showNum={true} 
+                            style={styles.reviewsStyle} 
+                            oneStar={true} 
+                            fSize={15}
+                        />
+                    )}
 
-                    {price && price !== '' && (
+                    {safePrice !== '' && (
                         <View style={styles.priceWrap}>
                             <TextRegular style={[styles.priceTitle, { color: colors.addressText }]}>
-                                {translate('home', 'from', {})}
+                                {translate('home', 'from', {}) || ''}
                             </TextRegular>
                             <TextHeavy style={[styles.priceAmount, { color: colors.appColor }]}>
-                                {fomartCurrOut(price)}
+                                {fomartCurrOut(safePrice) || ''}
                             </TextHeavy>
                         </View>
                     )}
@@ -171,6 +185,9 @@ const styles = StyleSheet.create({
         marginLeft: 3,
         marginTop: 4,
     } as TextStyle,
+    reviewsStyle: {
+        marginTop: 5,
+    } as ViewStyle,
 });
 
 export default LCard;

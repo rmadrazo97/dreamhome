@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "Powiadomienia",
+        bookmarks: "Zakładki",
         logout: "Wyloguj",
         chat: "Czat",
         currency: "Waluta",
         language: "Język",
+        legal: "Prawny",
         about_us: "O nas",
         help_center: "Centrum pomocy",
         privacy_policy: "Polityka prywatności",
@@ -190,7 +192,7 @@ export default {
     currency: {
         title: "WALUTA",
         apply: "ZMIANA",
-        no_currency: "Witryna nie ma currecy",
+        no_currency: "Witryna nie ma currency",
         changed: "Zmiana waluty",
     },
     bookmarks: {

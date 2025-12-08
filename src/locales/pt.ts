@@ -150,10 +150,12 @@ export default {
     },
     profile: {
         notis: "Notificações",
+        bookmarks: "Marcadores",
         logout: "Salir",
         chat: "Bate-papo",
         currency: "Moeda",
         language: "Língua",
+        legal: "Legal",
         about_us: "Sobre nós",
         help_center: "Centro de ajuda",
         privacy_policy: "Política de Privacidade",
@@ -190,7 +192,7 @@ export default {
     currency: {
         title: "MOEDA",
         apply: "MUDANÇA",
-        no_currency: "O site não tem currecy",
+        no_currency: "O site não tem currency",
         changed: "Moeda alterada",
     },
     bookmarks: {

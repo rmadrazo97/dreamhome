@@ -13,7 +13,7 @@ import {
     Alert
 } from 'react-native';
 import { SafeAreaConsumer } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import Geolocation from '@react-native-community/geolocation';
 
 import { translate } from "../helpers/i18n";
@@ -21,7 +21,8 @@ import { extractPostParams } from "../helpers/store";
 import TextRegular from '../components/ui/TextRegular';
 import TextHeavy from '../components/ui/TextHeavy';
 import { SearchSvg, CloseSvg, MarkerSvg } from '../components/icons/ButtonSvgIcons';
-import { ThemeColors, NavigationProp, Listing, Location } from '../types';
+import { NavigationProp, Listing, Location } from '../types';
+import { themedColors } from '../constants/Colors';
 
 // Types
 interface NearScreenState {
@@ -37,14 +38,14 @@ interface NearScreenState {
 
 interface NearScreenProps {
     navigation: NavigationProp;
-    apColors: ThemeColors;
     listings: Listing[];
     categories: any[];
     site: any;
     listingsLoading: boolean;
 }
 
-const NearScreen: React.FC<NearScreenProps> = ({ navigation, apColors, listings, categories, listingsLoading }) => {
+const NearScreen: React.FC<NearScreenProps> = ({ navigation, listings, categories, listingsLoading }) => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
     const [state, setState] = useState<NearScreenState>({
         listings: [],
         loading: true,
@@ -530,7 +531,6 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state: any) => ({
-    apColors: state.apColors,
     listings: state.listings?.items || [],
     categories: state.site?.cats || [],
     site: state.site,

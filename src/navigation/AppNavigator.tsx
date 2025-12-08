@@ -1,7 +1,7 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Platform } from 'react-native';
 import MainStack from './MainStack';
 import NearStack from './NearStack';
@@ -10,7 +10,8 @@ import ChatStack from './ChatStack';
 import ProfileStack from './ProfileStack';
 import { translate } from "../helpers/i18n";
 import { ExploreSvg, BookmarksSvg, ProfileSvg, SearchSvg, ChatSvg } from '../components/icons/TabbarSvgIcons';
-import { ThemeColors } from '../types';
+import { themedColors } from '../constants/Colors';
+import store from '../store/index';
 
 const Tab = createBottomTabNavigator();
 
@@ -26,13 +27,15 @@ const BookmarksIcon = ({ color }: { color: string }) => <TabIcon IconComponent={
 const ChatIcon = ({ color }: { color: string }) => <TabIcon IconComponent={ChatSvg} color={color} />;
 const ProfileIcon = ({ color }: { color: string }) => <TabIcon IconComponent={ProfileSvg} color={color} />;
 
-interface AppNavigatorProps {
-    apColors: ThemeColors;
-}
-
-const AppNavigator: React.FC<AppNavigatorProps> = ({ apColors }) => {
-    // Add null check for apColors
-    if (!apColors) {
+const AppNavigator: React.FC = () => {
+    const apColors = useSelector((state: any) => state.apColors) || themedColors.default;
+    
+    // The reducer has initialState, so apColors should always exist
+    // If it doesn't, fallback to prevent crash
+    if (!apColors || !apColors.tabBarColors || !apColors.tabBarColors.activeTintColor) {
+        // This should not happen as reducer has initialState
+        // Return null to prevent crash, but log for debugging
+        console.warn('AppNavigator: apColors not available, this should not happen');
         return null;
     }
 	  
@@ -62,6 +65,33 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({ apColors }) => {
 						tabBarIcon: NearMeIcon,
 						tabBarLabel: translate('nearme', '', {}),
 					}}
+					listeners={({ navigation, route: _route }) => ({
+						tabPress: (e) => {
+							// Check if this tab is already focused
+							const state = navigation.getState();
+							const currentRoute = state.routes[state.index];
+							
+							if (currentRoute.name === 'NearStack') {
+								// Tab is already focused, reset to initial route
+								e.preventDefault();
+								navigation.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: 'NearStack',
+												state: {
+													routes: [{ name: 'Home' }],
+													index: 0,
+												},
+											},
+										],
+									})
+								);
+							}
+							// If not focused, let default behavior happen (switch to tab)
+						},
+					})}
 				/>
 				
 				<Tab.Screen 
@@ -71,6 +101,41 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({ apColors }) => {
 						tabBarIcon: ExploreIcon,
 						tabBarLabel: translate('explore', '', {}),
 					}}
+					listeners={({ navigation, route: _route }) => ({
+						tabPress: (e) => {
+							// Check if this tab is already focused
+							const state = navigation.getState();
+							const currentRoute = state.routes[state.index];
+							
+							if (currentRoute.name === 'MainStack') {
+								// Tab is already focused, reset to initial route
+								e.preventDefault();
+								navigation.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: 'MainStack',
+												state: {
+													routes: [
+														{
+															name: 'HomeStack',
+															state: {
+																routes: [{ name: 'Home' }],
+																index: 0,
+															},
+														},
+													],
+													index: 0,
+												},
+											},
+										],
+									})
+								);
+							}
+							// If not focused, let default behavior happen (switch to tab)
+						},
+					})}
 				/>
 				
 				<Tab.Screen 
@@ -80,6 +145,38 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({ apColors }) => {
 						tabBarIcon: BookmarksIcon,
 						tabBarLabel: translate('bookmarksTab', '', {}),
 					}}
+					listeners={({ navigation, route: _route }) => ({
+						tabPress: (e) => {
+							// Check if this tab is already focused
+							const state = navigation.getState();
+							const currentRoute = state.routes[state.index];
+							
+							if (currentRoute.name === 'BookmarksStack') {
+								// Tab is already focused, reset to initial route
+								e.preventDefault();
+								// Get user from Redux store to determine initial route
+								const userState = store.getState().user;
+								const isLoggedIn = userState?.isLoggedIn ?? false;
+								const initialRoute = isLoggedIn ? 'Bookmarks' : 'SignIn';
+								
+								navigation.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: 'BookmarksStack',
+												state: {
+													routes: [{ name: initialRoute }],
+													index: 0,
+												},
+											},
+										],
+									})
+								);
+							}
+							// If not focused, let default behavior happen (switch to tab)
+						},
+					})}
 				/>
 				
 				<Tab.Screen 
@@ -89,23 +186,83 @@ const AppNavigator: React.FC<AppNavigatorProps> = ({ apColors }) => {
 						tabBarIcon: ChatIcon,
 						tabBarLabel: "Chat",
 					}}
+					listeners={({ navigation, route: _route }) => ({
+						tabPress: (e) => {
+							// Check if this tab is already focused
+							const state = navigation.getState();
+							const currentRoute = state.routes[state.index];
+							
+							if (currentRoute.name === 'ChatStack') {
+								// Tab is already focused, reset to initial route
+								e.preventDefault();
+								// Get user from Redux store to determine initial route
+								const userState = store.getState().user;
+								const isLoggedIn = userState?.isLoggedIn ?? false;
+								const initialRoute = isLoggedIn ? 'Chat' : 'SignIn';
+								
+								navigation.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: 'ChatStack',
+												state: {
+													routes: [{ name: initialRoute }],
+													index: 0,
+												},
+											},
+										],
+									})
+								);
+							}
+							// If not focused, let default behavior happen (switch to tab)
+						},
+					})}
 				/>
 				
 				<Tab.Screen 
 					name="ProfileStack" 
-					component={ProfileStack} 
+					component={ProfileStack}
 					options={{
 						tabBarIcon: ProfileIcon,
 						tabBarLabel: translate('profileMenu', '', {}),
 					}}
+					listeners={({ navigation, route: _route }) => ({
+						tabPress: (e) => {
+							// Check if this tab is already focused
+							const state = navigation.getState();
+							const currentRoute = state.routes[state.index];
+							
+							if (currentRoute.name === 'ProfileStack') {
+								// Tab is already focused, reset to initial route
+								e.preventDefault();
+								// Get user from Redux store to determine initial route
+								const userState = store.getState().user;
+								const isLoggedIn = userState?.isLoggedIn ?? false;
+								const initialRoute = isLoggedIn ? 'Profile' : 'SignIn';
+								
+								navigation.dispatch(
+									CommonActions.reset({
+										index: 0,
+										routes: [
+											{
+												name: 'ProfileStack',
+												state: {
+													routes: [{ name: initialRoute }],
+													index: 0,
+												},
+											},
+										],
+									})
+								);
+							}
+							// If not focused, let default behavior happen (switch to tab)
+						},
+					})}
 				/>
 			</Tab.Navigator>
 		</NavigationContainer>
 	);
 };
 
-const mapStateToProps = (state: any) => ({
-    apColors: state.apColors,
-});
-
-export default connect(mapStateToProps)(AppNavigator);
+export default AppNavigator;
